@@ -5,9 +5,9 @@ module LaxZonedDateTimes
 using TimeZones
 import Base: +, -, .+, .-, ==, show
 import Base.Dates: DatePeriod, TimePeriod, TimeType
-import TimeZones: utc, localtime, timezone, UTC, Local, interpret
+import TimeZones: ZonedDateTime, utc, localtime, timezone, UTC, Local, interpret
 
-export LaxZonedDateTime, isvalid
+export LaxZonedDateTime, isvalid, isambiguous, isnonexistent
 
 abstract InvalidTimeZone <: TimeZone
 
@@ -80,34 +80,14 @@ end
 # end
 
 localtime(lzdt::LaxZonedDateTime) = lzdt.local_datetime
+utc(lzdt::LaxZonedDateTime) = utc(ZonedDateTime(lzdt))
 timezone(lzdt::LaxZonedDateTime) = lzdt.timezone
 isrepresentable(lzdt::LaxZonedDateTime) = lzdt.representable
 
 Base.isvalid(lzdt::LaxZonedDateTime) = isrepresentable(lzdt) && !isa(lzdt.zone, InvalidTimeZone)
+isambiguous(lzdt::LaxZonedDateTime) = isa(lzdt, Ambiguous)
+isnonexistent(lzdt::LaxZonedDateTime) = isa(lzdt, NonExistent)
 
-
-function utc(lzdt::LaxZonedDateTime)
-    if !isrepresentable(lzdt)
-        error("Unable to determine UTC datetime from an unrepresentable LaxZonedDateTime")
-    end
-
-    if isa(lzdt.zone, FixedTimeZone)
-        return lzdt.local_datetime - lzdt.zone.offset
-    end
-
-    local_dt, tz = localtime(lzdt), timezone(lzdt)
-    possible = interpret(local_dt, tz, Local)
-
-    num = length(possible)
-    if num == 1
-        warn("Internal error")
-        return utc(first(possible))
-    elseif num == 0
-        throw(NonExistentTimeError(local_dt, tz))
-    else
-        throw(AmbiguousTimeError(local_dt, tz))
-    end
-end
 
 (-)(x::LaxZonedDateTime, y::LaxZonedDateTime) = utc(x) - utc(y)
 (-)(x::LaxZonedDateTime, y::ZonedDateTime) = utc(x) - utc(y)
@@ -174,6 +154,7 @@ end
 
 Base.promote_rule(::Type{LaxZonedDateTime},::Type{ZonedDateTime}) = LaxZonedDateTime
 Base.convert(::Type{LaxZonedDateTime}, x::ZonedDateTime) = LaxZonedDateTime(x)
+Base.convert(::Type{ZonedDateTime}, x::LaxZonedDateTime) = ZonedDateTime(x)
 
 function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
     if !isrepresentable(a) || !isrepresentable(b)
@@ -185,6 +166,35 @@ function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
         return utc(a) < utc(b)
     else
         return a_local_dt < b_local_dt
+    end
+end
+
+function ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:invalid)
+    if !isrepresentable(lzdt)
+        error("Unable to determine UTC datetime from an unrepresentable LaxZonedDateTime")
+    end
+
+    if isa(lzdt.zone, FixedTimeZone)
+        utc_dt = lzdt.local_datetime - lzdt.zone.offset
+        return ZonedDateTime(utc_dt, timezone(lzdt); from_utc=true)
+    end
+
+    local_dt, tz = localtime(lzdt), timezone(lzdt)
+    possible = interpret(local_dt, tz, Local)
+
+    num = length(possible)
+    if num == 1
+        return first(possible)
+    elseif num == 0
+        throw(NonExistentTimeError(local_dt, tz))
+    else
+        if ambiguous == :first
+            return first(possible)
+        elseif ambiguous == :last
+            return last(possible)
+        else
+            throw(AmbiguousTimeError(local_dt, tz))
+        end
     end
 end
 
