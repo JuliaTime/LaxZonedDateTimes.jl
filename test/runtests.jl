@@ -60,3 +60,19 @@ a = collect(r)
 l = map(LaxZonedDateTime, a)
 l - Day(1)
 =#
+
+wpg = TimeZone("America/Winnipeg")
+@test LaxZonedDateTime(ZonedDateTime(2014,wpg)) < ZonedDateTime(2015,wpg)
+
+amb = LaxZonedDateTime(DateTime(2015,11,1,1),wpg)
+amb_first = LaxZonedDateTime(ZonedDateTime(2015,11,1,1,wpg,1))
+amb_last = LaxZonedDateTime(ZonedDateTime(2015,11,1,1,wpg,2))
+
+@test amb_first < amb_last
+@test !(amb_first < amb)
+@test !(amb < amb_first)
+@test !(amb_last < amb)
+@test !(amb < amb_last)
+
+non_existent = LaxZonedDateTime(DateTime(2015,3,8,2),wpg)
+@test ZonedDateTime(2015,3,8,1,wpg) < non_existent < ZonedDateTime(2015,3,8,3,wpg)

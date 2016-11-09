@@ -107,6 +107,13 @@ function utc(lzdt::LaxZonedDateTime)
 end
 
 (-)(x::LaxZonedDateTime, y::LaxZonedDateTime) = utc(x) - utc(y)
+(-)(x::LaxZonedDateTime, y::ZonedDateTime) = utc(x) - utc(y)
+(-)(x::ZonedDateTime, y::LaxZonedDateTime) = utc(x) - utc(y)
+
+(.-)(x::AbstractArray{LaxZonedDateTime}, y::ZonedDateTime) = x .- LaxZonedDateTime(y)
+function (.-)(x::AbstractArray{ZonedDateTime}, y::LaxZonedDateTime)
+    x .- ZonedDateTime(utc(y), timezone(y); from_utc=true)
+end
 
 function (+)(lzdt::LaxZonedDateTime, p::DatePeriod)
     !isvalid(lzdt) && (return lzdt)
@@ -159,6 +166,22 @@ function show(io::IO, lzdt::LaxZonedDateTime)
         end
     else
         print(io, "NULL")
+    end
+end
+
+Base.promote_rule(::Type{LaxZonedDateTime},::Type{ZonedDateTime}) = LaxZonedDateTime
+Base.convert(::Type{LaxZonedDateTime}, x::ZonedDateTime) = LaxZonedDateTime(x)
+
+function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
+    if !isvalid(a) || !isvalid(b)
+        return false
+    end
+
+    a_local_dt, b_local_dt = localtime(a), localtime(b)
+    if a_local_dt == b_local_dt && isa(a.zone, FixedTimeZone) && isa(b.zone, FixedTimeZone)
+        return utc(a) < utc(b)
+    else
+        return a_local_dt < b_local_dt
     end
 end
 
