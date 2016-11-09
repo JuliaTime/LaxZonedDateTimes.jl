@@ -7,7 +7,7 @@ import Base: +, -, .+, .-, ==, show
 import Base.Dates: DatePeriod, TimePeriod, TimeType
 import TimeZones: utc, localtime, timezone, UTC, Local, interpret
 
-export LaxZonedDateTime
+export LaxZonedDateTime, isvalid
 
 abstract InvalidTimeZone <: TimeZone
 
@@ -24,7 +24,7 @@ immutable LaxZonedDateTime <: TimeType
     local_datetime::DateTime
     timezone::TimeZone
     zone::Union{FixedTimeZone,InvalidTimeZone}
-    valid::Bool
+    representable::Bool
 end
 
 function LaxZonedDateTime()
@@ -57,11 +57,11 @@ end
 
 function (==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     return (
-        x.valid == y.valid == false ||
+        x.representable == y.representable == false ||
         x.local_datetime == y.local_datetime &&
         x.timezone == y.timezone &&
         x.zone == y.zone &&
-        x.valid == y.valid
+        x.representable == y.representable
     )
 end
 
@@ -81,11 +81,14 @@ end
 
 localtime(lzdt::LaxZonedDateTime) = lzdt.local_datetime
 timezone(lzdt::LaxZonedDateTime) = lzdt.timezone
-isvalid(lzdt::LaxZonedDateTime) = lzdt.valid
+isrepresentable(lzdt::LaxZonedDateTime) = lzdt.representable
+
+Base.isvalid(lzdt::LaxZonedDateTime) = isrepresentable(lzdt) && !isa(lzdt.zone, InvalidTimeZone)
+
 
 function utc(lzdt::LaxZonedDateTime)
-    if !isvalid(lzdt)
-        error("Unable to determine UTC datetime from invalid LaxZonedDateTime")
+    if !isrepresentable(lzdt)
+        error("Unable to determine UTC datetime from an unrepresentable LaxZonedDateTime")
     end
 
     if isa(lzdt.zone, FixedTimeZone)
@@ -116,7 +119,7 @@ function (.-)(x::AbstractArray{ZonedDateTime}, y::LaxZonedDateTime)
 end
 
 function (+)(lzdt::LaxZonedDateTime, p::DatePeriod)
-    !isvalid(lzdt) && (return lzdt)
+    !isrepresentable(lzdt) && (return lzdt)
 
     local_dt, tz = localtime(lzdt), timezone(lzdt)
     local_dt = local_dt + p
@@ -133,7 +136,7 @@ function (+)(lzdt::LaxZonedDateTime, p::DatePeriod)
 end
 
 function (+)(lzdt::LaxZonedDateTime, p::TimePeriod)
-    !isvalid(lzdt) && (return lzdt)
+    !isrepresentable(lzdt) && (return lzdt)
 
     if isa(lzdt.zone, InvalidTimeZone)
         return LaxZonedDateTime()
@@ -154,7 +157,7 @@ end
 
 
 function show(io::IO, lzdt::LaxZonedDateTime)
-    if isvalid(lzdt)
+    if isrepresentable(lzdt)
         print(io, localtime(lzdt))
 
         if isa(lzdt.zone, NonExistent)
@@ -173,7 +176,7 @@ Base.promote_rule(::Type{LaxZonedDateTime},::Type{ZonedDateTime}) = LaxZonedDate
 Base.convert(::Type{LaxZonedDateTime}, x::ZonedDateTime) = LaxZonedDateTime(x)
 
 function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
-    if !isvalid(a) || !isvalid(b)
+    if !isrepresentable(a) || !isrepresentable(b)
         return false
     end
 
