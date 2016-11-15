@@ -80,3 +80,7 @@ non_existent = LaxZonedDateTime(DateTime(2015,3,8,2),wpg)
 
 @test hour(amb) == hour(amb_first) == hour(amb_last) == 1
 @test hour(non_existent) == 2
+
+@test_throws Exception localtime(null)
+@test_throws Exception utc(null)
+@test_throws Exception hour(null)

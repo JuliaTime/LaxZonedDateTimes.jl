@@ -1,6 +1,13 @@
 import Base.Dates: hour, minute, second, millisecond
 
-localtime(lzdt::LaxZonedDateTime) = lzdt.local_datetime
+function localtime(lzdt::LaxZonedDateTime)
+    if isrepresentable(lzdt)
+        return lzdt.local_datetime
+    else
+        error("Unable to determine local datetime from an unrepresentable LaxZonedDateTime")
+    end
+end
+
 utc(lzdt::LaxZonedDateTime) = utc(ZonedDateTime(lzdt))
 timezone(lzdt::LaxZonedDateTime) = lzdt.timezone
 isrepresentable(lzdt::LaxZonedDateTime) = lzdt.representable
