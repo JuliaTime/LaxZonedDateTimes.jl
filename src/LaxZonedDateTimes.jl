@@ -7,7 +7,10 @@ import Base: +, -, .+, .-, ==, show
 import Base.Dates: DatePeriod, TimePeriod, TimeType
 import TimeZones: ZonedDateTime, utc, localtime, timezone, UTC, Local, interpret
 
-export LaxZonedDateTime, isvalid, isambiguous, isnonexistent
+export LaxZonedDateTime,
+    # accessors.jl
+    isvalid, isambiguous, isnonexistent,
+    hour, minute, second, millisecond
 
 abstract InvalidTimeZone <: TimeZone
 
@@ -79,14 +82,7 @@ end
 #     end
 # end
 
-localtime(lzdt::LaxZonedDateTime) = lzdt.local_datetime
-utc(lzdt::LaxZonedDateTime) = utc(ZonedDateTime(lzdt))
-timezone(lzdt::LaxZonedDateTime) = lzdt.timezone
-isrepresentable(lzdt::LaxZonedDateTime) = lzdt.representable
-
-Base.isvalid(lzdt::LaxZonedDateTime) = isrepresentable(lzdt) && !isa(lzdt.zone, InvalidTimeZone)
-isambiguous(lzdt::LaxZonedDateTime) = isa(lzdt, Ambiguous)
-isnonexistent(lzdt::LaxZonedDateTime) = isa(lzdt, NonExistent)
+include("accessors.jl")
 
 
 (-)(x::LaxZonedDateTime, y::LaxZonedDateTime) = utc(x) - utc(y)

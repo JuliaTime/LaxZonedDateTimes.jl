@@ -76,3 +76,7 @@ amb_last = LaxZonedDateTime(ZonedDateTime(2015,11,1,1,wpg,2))
 
 non_existent = LaxZonedDateTime(DateTime(2015,3,8,2),wpg)
 @test ZonedDateTime(2015,3,8,1,wpg) < non_existent < ZonedDateTime(2015,3,8,3,wpg)
+
+
+@test hour(amb) == hour(amb_first) == hour(amb_last) == 1
+@test hour(non_existent) == 2
