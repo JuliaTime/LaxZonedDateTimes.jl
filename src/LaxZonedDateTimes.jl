@@ -157,7 +157,8 @@ function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
         return false
     end
 
-    if isa(a.zone, FixedTimeZone) && isa(b.zone, FixedTimeZone)
+    # Need to compare using UTC  when the zones are fixed and don't have the same offset.
+    if a.zone != b.zone && isa(a.zone, FixedTimeZone) && isa(b.zone, FixedTimeZone)
         return utc(a) < utc(b)
     else
         return localtime(a) < localtime(b)
