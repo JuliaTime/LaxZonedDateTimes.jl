@@ -92,3 +92,16 @@ a = ZonedDateTime(2016, 11, 6, 1, 30, wpg, 1)
 b = ZonedDateTime(2016, 11, 6, 1, wpg, 2)
 
 @test LaxZonedDateTime(a) < b
+
+
+@test !isambiguous(null)
+@test isambiguous(amb)
+@test !isambiguous(amb_first)
+@test !isambiguous(amb_last)
+@test !isambiguous(non_existent)
+
+@test !isnonexistent(null)
+@test !isnonexistent(amb)
+@test !isnonexistent(amb_first)
+@test !isnonexistent(amb_last)
+@test isnonexistent(non_existent)

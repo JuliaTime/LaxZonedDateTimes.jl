@@ -13,8 +13,8 @@ timezone(lzdt::LaxZonedDateTime) = lzdt.timezone
 isrepresentable(lzdt::LaxZonedDateTime) = lzdt.representable
 
 Base.isvalid(lzdt::LaxZonedDateTime) = isrepresentable(lzdt) && !isa(lzdt.zone, InvalidTimeZone)
-isambiguous(lzdt::LaxZonedDateTime) = isa(lzdt, Ambiguous)
-isnonexistent(lzdt::LaxZonedDateTime) = isa(lzdt, NonExistent)
+isambiguous(lzdt::LaxZonedDateTime) = isa(lzdt.zone, Ambiguous)
+isnonexistent(lzdt::LaxZonedDateTime) = isa(lzdt.zone, NonExistent)
 
 days(lzdt::LaxZonedDateTime) = days(localtime(lzdt))
 
