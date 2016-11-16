@@ -86,3 +86,9 @@ non_existent = LaxZonedDateTime(DateTime(2015,3,8,2),wpg)
 @test_throws Exception localtime(null)
 @test_throws Exception utc(null)
 @test_throws Exception hour(null)
+
+
+a = ZonedDateTime(2016, 11, 6, 1, 30, wpg, 1)
+b = ZonedDateTime(2016, 11, 6, 1, wpg, 2)
+
+@test LaxZonedDateTime(a) < b

@@ -157,11 +157,10 @@ function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
         return false
     end
 
-    a_local_dt, b_local_dt = localtime(a), localtime(b)
-    if a_local_dt == b_local_dt && isa(a.zone, FixedTimeZone) && isa(b.zone, FixedTimeZone)
+    if isa(a.zone, FixedTimeZone) && isa(b.zone, FixedTimeZone)
         return utc(a) < utc(b)
     else
-        return a_local_dt < b_local_dt
+        return localtime(a) < localtime(b)
     end
 end
 
