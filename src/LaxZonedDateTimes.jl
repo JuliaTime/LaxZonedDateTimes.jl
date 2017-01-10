@@ -90,8 +90,8 @@ function (-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     return (isvalid(x) && isvalid(y)) ? utc(x) - utc(y) : LaxZonedDateTime()
 end
 
-(-)(x::LaxZonedDateTime, y::ZonedDateTime) = isvalid(x) ? utc(x)-utc(y) : LaxZonedDateTime()
-(-)(x::ZonedDateTime, y::LaxZonedDateTime) = isvalid(y) ? utc(x)-utc(y) : LaxZonedDateTime()
+(-)(x::LaxZonedDateTime, y::ZonedDateTime) = isvalid(x) ? utc(x) - utc(y) : LaxZonedDateTime()
+(-)(x::ZonedDateTime, y::LaxZonedDateTime) = y - x
 
 (.-)(x::AbstractArray{LaxZonedDateTime}, y::ZonedDateTime) = x .- LaxZonedDateTime(y)
 function (.-)(x::AbstractArray{ZonedDateTime}, y::LaxZonedDateTime)
