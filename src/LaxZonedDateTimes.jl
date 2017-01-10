@@ -83,11 +83,15 @@ end
 # end
 
 include("accessors.jl")
+include("rounding.jl")
 
 
-(-)(x::LaxZonedDateTime, y::LaxZonedDateTime) = utc(x) - utc(y)
-(-)(x::LaxZonedDateTime, y::ZonedDateTime) = utc(x) - utc(y)
-(-)(x::ZonedDateTime, y::LaxZonedDateTime) = utc(x) - utc(y)
+function (-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
+    return (isvalid(x) && isvalid(y)) ? utc(x) - utc(y) : LaxZonedDateTime()
+end
+
+(-)(x::LaxZonedDateTime, y::ZonedDateTime) = isvalid(x) ? utc(x)-utc(y) : LaxZonedDateTime()
+(-)(x::ZonedDateTime, y::LaxZonedDateTime) = isvalid(y) ? utc(x)-utc(y) : LaxZonedDateTime()
 
 (.-)(x::AbstractArray{LaxZonedDateTime}, y::ZonedDateTime) = x .- LaxZonedDateTime(y)
 function (.-)(x::AbstractArray{ZonedDateTime}, y::LaxZonedDateTime)
@@ -144,7 +148,7 @@ function show(io::IO, lzdt::LaxZonedDateTime)
             print(io, lzdt.zone.offset)
         end
     else
-        print(io, "NULL")
+        print(io, "INVALID")
     end
 end
 
