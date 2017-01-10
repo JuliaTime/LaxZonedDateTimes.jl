@@ -4,7 +4,7 @@ module LaxZonedDateTimes
 
 using TimeZones
 import Base: +, -, .+, .-, ==, show
-import Base.Dates: DatePeriod, TimePeriod, TimeType
+import Base.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
 import TimeZones: ZonedDateTime, utc, localtime, timezone, UTC, Local, interpret
 
 export LaxZonedDateTime,
@@ -87,10 +87,13 @@ include("rounding.jl")
 
 
 function (-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
-    return (isvalid(x) && isvalid(y)) ? utc(x) - utc(y) : LaxZonedDateTime()
+    R = Nullable{Millisecond}
+    return (isvalid(x) && isvalid(y)) ? R(utc(x) - utc(y)) : R()
 end
-
-(-)(x::LaxZonedDateTime, y::ZonedDateTime) = isvalid(x) ? utc(x) - utc(y) : LaxZonedDateTime()
+function (-)(x::LaxZonedDateTime, y::ZonedDateTime)
+    R = Nullable{Millisecond}
+    return isvalid(x) ? R(utc(x) - utc(y)) : R()
+end
 (-)(x::ZonedDateTime, y::LaxZonedDateTime) = y - x
 
 (.-)(x::AbstractArray{LaxZonedDateTime}, y::ZonedDateTime) = x .- LaxZonedDateTime(y)
@@ -171,7 +174,7 @@ end
 
 function ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:invalid)
     if !isrepresentable(lzdt)
-        error("Unable to determine UTC datetime from an unrepresentable LaxZonedDateTime")
+        throw(ArgumentError("Unable to determine UTC datetime from an unrepresentable LaxZonedDateTime"))
     end
 
     if isa(lzdt.zone, FixedTimeZone)
