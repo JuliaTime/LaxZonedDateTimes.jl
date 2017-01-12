@@ -106,6 +106,10 @@ b = ZonedDateTime(2016, 11, 6, 1, wpg, 2)
 @test !isnonexistent(amb_last)
 @test isnonexistent(non_existent)
 
+@test get(amb_last - amb_first) == Dates.Hour(1)
+@test isnull(amb - amb_first)
+@test isnull(non_existent - amb_first)
+@test isnull(null - amb_first)
 
 @testset "rounding" begin
     winnipeg = TimeZone("America/Winnipeg")

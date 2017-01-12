@@ -18,11 +18,24 @@ function Base.ceil(lzdt::LaxZonedDateTime, p::DatePeriod)
     return LaxZonedDateTime(ceil(localtime(lzdt), p), timezone(lzdt))
 end
 
-function Base.round(lzdt::LaxZonedDateTime, p::Period, r::RoundingMode{:NearestTiesUp})
+# TODO: Additional performance gains can be made for round
+
+function Base.round(lzdt::LaxZonedDateTime, p::DatePeriod, r::RoundingMode{:NearestTiesUp})
+    !isrepresentable(lzdt) && return LaxZonedDateTime()
     f, c = floorceil(lzdt, p)
     # If floor or ceil is ambiguous/nonexistent/non-representable, we can't pick.
     !(isvalid(f) && isvalid(c)) && return LaxZonedDateTime()
-    return (lzdt - f) < (c - lzdt) ? f : c
+    local_dt = localtime(lzdt)
+    return local_dt - localtime(f) < localtime(c) - local_dt ? f : c
+end
+
+function Base.round(lzdt::LaxZonedDateTime, p::TimePeriod, r::RoundingMode{:NearestTiesUp})
+    !isvalid(lzdt) && return LaxZonedDateTime()
+    f, c = floorceil(lzdt, p)
+    # If floor or ceil is ambiguous/nonexistent/non-representable, we can't pick.
+    !(isvalid(f) && isvalid(c)) && return LaxZonedDateTime()
+    utc_dt = utc(lzdt)
+    return utc_dt - utc(f) < utc(c) - utc_dt ? f : c
 end
 
 """
