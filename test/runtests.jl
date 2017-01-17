@@ -232,7 +232,9 @@ end
     # If start and/or finish is unrepresentable, the range collects to nothing.
     # If start is AMB/DNE, and step is a DatePeriod, it works (though start still DNE/AMB)
     # If start is AMB/DNE, and step is a TimePeriod, the range collects to nothing.
-    # If finish is AMB/DNE, it works.
+    # If finish is AMB/DNE, and step is a DatePeriod, it works (last element may be DNE/AMB)
+    # If finish is AMB/DNE, and step is a TimePeriod, it works (last element omitted for
+    #   DNE, both specific versions included for AMB)
 
     # When transitions occur between the start and end of a range, they are skipped over as
     # per the TimeZones.jl implementation (e.g., when stepping one hour at a time, a "spring
@@ -242,9 +244,6 @@ end
     # on the missing hour).
 
     # Please see the TODO comments in `test/runtests.jl` in particular.
-
-    # I'm putting together a couple more test cases to reflect a potential error I saw (now
-    # fixed, I believe) that would affect negative step values for some edge cases.
 
     @testset "basic" begin
         # Positive step
@@ -295,6 +294,7 @@ end
     end
 
     @testset "step through transition" begin
+        # step past DNE (hourly)
         start = LaxZonedDateTime(DateTime(2016, 3, 13, 0, 45), winnipeg)
         finish = LaxZonedDateTime(DateTime(2016, 3, 13, 5, 45), winnipeg)
         r = start:Hour(1):finish
@@ -307,6 +307,18 @@ end
             LaxZonedDateTime(DateTime(2016, 3, 13, 5, 45), winnipeg)
         ]
 
+        # step past DNE (hourly, backward)
+        r = finish:Hour(-1):start
+        @test isa(r, StepRange{LaxZonedDateTime, Hour})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 3, 13, 5, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 13, 4, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 13, 3, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 13, 1, 45), winnipeg),   # Skip missing hour
+            LaxZonedDateTime(DateTime(2016, 3, 13, 0, 45), winnipeg)
+        ]
+
+        # step past DNE (daily)
         # TODO: Is this the behaviour we want? When we step past transitions on an hourly
         # basis we skip them (like TimeZones.jl does), but when we do it on a daily basis we
         # get the DNEs (where TimeZones.jl would throw an error). This seems appropriate (as
@@ -325,6 +337,18 @@ end
             LaxZonedDateTime(DateTime(2016, 3, 15, 2, 45), winnipeg)
         ]
 
+        # step past DNE (daily, backward)
+        start = LaxZonedDateTime(DateTime(2016, 3, 15, 2, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 3, 10, 2, 45), winnipeg)
+        r = start:Day(-2):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Day})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 3, 15, 2, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg),   # Include DNE
+            LaxZonedDateTime(DateTime(2016, 3, 11, 2, 45), winnipeg)
+        ]
+
+        # step past AMB (hourly)
         start = LaxZonedDateTime(DateTime(2016, 11, 6, 0, 45), winnipeg)
         finish = LaxZonedDateTime(DateTime(2016, 11, 6, 5, 45), winnipeg)
         r = start:Hour(1):finish
@@ -339,15 +363,40 @@ end
             LaxZonedDateTime(DateTime(2016, 11, 6, 5, 45), winnipeg)
         ]
 
+        # step past AMB (hourly, backward)
+        r = finish:Hour(-1):start
+        @test isa(r, StepRange{LaxZonedDateTime, Hour})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 11, 6, 5, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 4, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 3, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 2, 45), winnipeg),
+            LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 2)),
+            LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 1)),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 0, 45), winnipeg)
+        ]
+
+        # step past AMB (daily)
         # TODO: Is this the behaviour we want? (Request for comment as above.)
         start = LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)
-        finish = LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 11, 9, 1, 45), winnipeg)
         r = start:Day(2):finish
         @test isa(r, StepRange{LaxZonedDateTime, Day})
         @test collect(r) == [
             LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg),
             LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg),   # Include AMB
             LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)
+        ]
+
+        # step past AMB (daily, backward)
+        start = LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 11, 3, 1, 45), winnipeg)
+        r = start:Day(-2):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Day})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg),   # Include AMB
+            LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)
         ]
     end
 
@@ -359,7 +408,15 @@ end
         @test isa(r, StepRange{LaxZonedDateTime, Hour})
         @test isempty(collect(r))
 
+        r = start:Hour(-1):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Hour})
+        @test isempty(collect(r))
+
         r = start:Day(2):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Day})
+        @test isempty(collect(r))
+
+        r = start:Day(-2):finish
         @test isa(r, StepRange{LaxZonedDateTime, Day})
         @test isempty(collect(r))
 
@@ -367,6 +424,12 @@ end
         start = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
         finish = LaxZonedDateTime(DateTime(2016, 3, 13, 7, 45), winnipeg)
         r = start:Hour(1):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Hour})
+        @test isempty(collect(r))
+
+        start = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 3, 12, 21, 45), winnipeg)
+        r = start:Hour(-1):finish
         @test isa(r, StepRange{LaxZonedDateTime, Hour})
         @test isempty(collect(r))
 
@@ -380,10 +443,26 @@ end
             LaxZonedDateTime(DateTime(2016, 3, 17, 2, 45), winnipeg)
         ]
 
+        start = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 3, 8, 2, 45), winnipeg)
+        r = start:Day(-2):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Day})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg),   # Include DNE
+            LaxZonedDateTime(DateTime(2016, 3, 11, 2, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 9, 2, 45), winnipeg)
+        ]
+
         # start is AMB
         start = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
         finish = LaxZonedDateTime(DateTime(2016, 11, 6, 6, 45), winnipeg)
         r = start:Hour(1):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Hour})
+        @test isempty(collect(r))
+
+        start = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 11, 5, 20, 45), winnipeg)
+        r = start:Hour(-1):finish
         @test isa(r, StepRange{LaxZonedDateTime, Hour})
         @test isempty(collect(r))
 
@@ -396,11 +475,17 @@ end
             LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg),
             LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
         ]
-    end
 
-    # TODO: Add test cases that step backward through/with AMB/DNE to verify that that works
-    # too.
-    # TODO: RFC first, with a reminder not to merge
+        start = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 11, 1, 1, 45), winnipeg)
+        r = start:Day(-2):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Day})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg),   # Include AMB
+            LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 2, 1, 45), winnipeg)
+        ]
+    end
 
     @testset "finish with invalid" begin
         # finish is unrepresentable
@@ -410,7 +495,15 @@ end
         @test isa(r, StepRange{LaxZonedDateTime, Hour})
         @test isempty(collect(r))
 
+        r = start:Hour(-1):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Hour})
+        @test isempty(collect(r))
+
         r = start:Day(2):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Day})
+        @test isempty(collect(r))
+
+        r = start:Day(-2):finish
         @test isa(r, StepRange{LaxZonedDateTime, Day})
         @test isempty(collect(r))
 
@@ -427,6 +520,18 @@ end
             LaxZonedDateTime(DateTime(2016, 3, 13, 1, 45), winnipeg)    # Skip DNE
         ]
 
+        start = LaxZonedDateTime(DateTime(2016, 3, 13, 7, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
+        r = start:Hour(-1):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Hour})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 3, 13, 7, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 13, 6, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 13, 5, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 13, 4, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 13, 3, 45), winnipeg)    # Skip DNE
+        ]
+
         start = LaxZonedDateTime(DateTime(2016, 3, 9, 2, 45), winnipeg)
         finish = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
         r = start:Day(2):finish
@@ -434,6 +539,16 @@ end
         @test collect(r) == [
             LaxZonedDateTime(DateTime(2016, 3, 9, 2, 45), winnipeg),
             LaxZonedDateTime(DateTime(2016, 3, 11, 2, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)    # Include DNE
+        ]
+
+        start = LaxZonedDateTime(DateTime(2016, 3, 17, 2, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
+        r = start:Day(-2):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Day})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 3, 17, 2, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 3, 15, 2, 45), winnipeg),
             LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)    # Include DNE
         ]
 
@@ -452,14 +567,38 @@ end
             LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 2))
         ]
 
-        start = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
-        finish = LaxZonedDateTime(DateTime(2016, 11, 11, 1, 45), winnipeg)
+        start = LaxZonedDateTime(DateTime(2016, 11, 6, 6, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
+        r = start:Hour(-1):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Hour})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 11, 6, 6, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 5, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 4, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 3, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 2, 45), winnipeg),
+            LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 2)),
+            LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 1))
+        ]
+
+        start = LaxZonedDateTime(DateTime(2016, 11, 2, 1, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
         r = start:Day(2):finish
         @test isa(r, StepRange{LaxZonedDateTime, Day})
         @test collect(r) == [
-            LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg),   # Include AMB
+            LaxZonedDateTime(DateTime(2016, 11, 2, 1, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg),
+            LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)    # Include AMB
+        ]
+
+        start = LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
+        r = start:Day(-2):finish
+        @test isa(r, StepRange{LaxZonedDateTime, Day})
+        @test collect(r) == [
+            LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg),
             LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg),
-            LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
+            LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)    # Include AMB
         ]
     end
 end
