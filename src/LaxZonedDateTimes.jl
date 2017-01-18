@@ -28,6 +28,11 @@ immutable LaxZonedDateTime <: TimeType
     timezone::TimeZone
     zone::Union{FixedTimeZone,InvalidTimeZone}
     representable::Bool
+
+    function LaxZonedDateTime(dt, tz, zone, rep)
+        utc = TimeZone("UTC")
+        return rep ? new(dt, tz, zone, rep) : new(DateTime(), utc, utc, false)
+    end
 end
 
 function LaxZonedDateTime()
@@ -68,7 +73,7 @@ function (==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
 end
 
 function isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
-    return x == y || x.representable == y.representable == false
+    return hash(x) == hash(y)
 end
 
 # function LaxZonedDateTime(local_dt::DateTime, tz::VariableTimeZone)

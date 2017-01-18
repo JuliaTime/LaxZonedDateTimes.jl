@@ -2,7 +2,7 @@ using LaxZonedDateTimes
 using Base.Test
 using TimeZones
 import TimeZones: Transition
-import Base.Dates: Year, Month, Week, Day, Hour, Minute, Second
+import Base.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
 import LaxZonedDateTimes: NonExistent, isrepresentable
 
 t = VariableTimeZone("Testing", [
@@ -20,11 +20,7 @@ valid_b = LaxZonedDateTime(DateTime(1960,4,1,6), t)
 non_existent_a = LaxZonedDateTime(DateTime(1960,4,1,2), t, NonExistent())
 non_existent_b = LaxZonedDateTime(DateTime(1960,4,1,3), t, NonExistent())
 
-# Unrepresentable LZDTs are treated like NaNs
 null = LaxZonedDateTime()
-@test null != null
-@test isequal(null, null)
-
 @test valid_a + Hour(2) == valid_b
 @test isequal(non_existent_a + Hour(1), null)
 @test isequal(non_existent_b + Hour(1), null)
@@ -115,6 +111,19 @@ b = ZonedDateTime(2016, 11, 6, 1, wpg, 2)
 @test isnull(amb - amb_first)
 @test isnull(non_existent - amb_first)
 @test isnull(null - amb_first)
+
+@testset "null equality" begin
+    # Unrepresentable LZDTs are treated like NaNs
+    null = LaxZonedDateTime()
+    @test null != null
+    @test isequal(null, null)
+
+    # Test that unrepresentable LZDTs initialized with different values hash the same
+    utc = TimeZone("UTC")
+    null_2 = LaxZonedDateTime(DateTime(2013, 2, 13, 0, 30), utc, utc, false)
+    @test isequal(null, null_2)
+    @test hash(null) == hash(null_2)
+end
 
 @testset "rounding" begin
     winnipeg = TimeZone("America/Winnipeg")
@@ -243,12 +252,13 @@ end
     # (e.g., stepping through the "spring forward" transition one day at a time, and landing
     # on the missing hour).
 
-    # Please see the TODO comments in `test/runtests.jl` in particular.
-
     @testset "basic" begin
-        # Positive step
+        # Default step
         start = LaxZonedDateTime(DateTime(2016, 3, 13, 3, 45), winnipeg)
         finish = LaxZonedDateTime(DateTime(2016, 3, 13, 8, 45), winnipeg)
+        @test start:finish == start:Millisecond(1):finish
+
+        # Positive step
         r = start:Hour(1):finish
         @test isa(r, StepRange{LaxZonedDateTime, Hour})
         @test collect(r) == [
@@ -319,14 +329,6 @@ end
         ]
 
         # step past DNE (daily)
-        # TODO: Is this the behaviour we want? When we step past transitions on an hourly
-        # basis we skip them (like TimeZones.jl does), but when we do it on a daily basis we
-        # get the DNEs (where TimeZones.jl would throw an error). This seems appropriate (as
-        # it is maximally consistent with TimeZones.jl; it is also simplest), but I can see
-        # an argument for not including the DNE element in the example below. Curt?
-        # Although... if we filter out the DNE here, it seems strange to START with the DNE
-        # in the next testset. Altogether I think the solution I have here is the right one,
-        # but it's still good to discuss it.
         start = LaxZonedDateTime(DateTime(2016, 3, 11, 2, 45), winnipeg)
         finish = LaxZonedDateTime(DateTime(2016, 3, 16, 2, 45), winnipeg)
         r = start:Day(2):finish
@@ -377,7 +379,6 @@ end
         ]
 
         # step past AMB (daily)
-        # TODO: Is this the behaviour we want? (Request for comment as above.)
         start = LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)
         finish = LaxZonedDateTime(DateTime(2016, 11, 9, 1, 45), winnipeg)
         r = start:Day(2):finish
