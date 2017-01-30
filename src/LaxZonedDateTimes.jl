@@ -3,7 +3,7 @@ module LaxZonedDateTimes
 # Prototype of a new type that is a more context aware Nullable{ZonedDateTime}
 
 using TimeZones
-import Base: +, -, .+, .-, ==, show
+import Base: +, -, .+, .-, ==, isequal, show
 import Base.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
 import TimeZones: ZonedDateTime, utc, localtime, timezone, UTC, Local, interpret
 
@@ -28,6 +28,11 @@ immutable LaxZonedDateTime <: TimeType
     timezone::TimeZone
     zone::Union{FixedTimeZone,InvalidTimeZone}
     representable::Bool
+
+    function LaxZonedDateTime(dt, tz, zone, rep)
+        utc = TimeZone("UTC")
+        return rep ? new(dt, tz, zone, rep) : new(DateTime(), utc, utc, false)
+    end
 end
 
 function LaxZonedDateTime()
@@ -60,12 +65,15 @@ end
 
 function (==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     return (
-        x.representable == y.representable == false ||
+        x.representable == y.representable == true &&
         x.local_datetime == y.local_datetime &&
         x.timezone == y.timezone &&
-        x.zone == y.zone &&
-        x.representable == y.representable
+        x.zone == y.zone
     )
+end
+
+function isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
+    return hash(x) == hash(y)
 end
 
 # function LaxZonedDateTime(local_dt::DateTime, tz::VariableTimeZone)
@@ -84,6 +92,7 @@ end
 
 include("accessors.jl")
 include("rounding.jl")
+include("ranges.jl")
 
 
 function (-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
@@ -130,12 +139,20 @@ function (+)(lzdt::LaxZonedDateTime, p::TimePeriod)
     return LaxZonedDateTime(first(possible))
 end
 
-function (-)(lzdt::LaxZonedDateTime, p::DatePeriod)
+function (-)(lzdt::LaxZonedDateTime, p::Period)
     return lzdt + (-p)
 end
 
-function (-)(lzdt::LaxZonedDateTime, p::TimePeriod)
-    return lzdt + (-p)
+# Allow a Nullable{Period} to be subtracted from an LZDT. (This is necessary because
+# subtracting one LZDT from another returns a Nullable, and StepRange constructor code makes
+# use of the result in a further subtraction. This prevents us from having to rewrite all of
+# the range code.)
+function (-){P<:Period}(lzdt::LaxZonedDateTime, p::Nullable{P})
+    return isnull(p) ? LaxZonedDateTime() : lzdt - get(p)
+end
+
+function (+){P<:Period}(lzdt::LaxZonedDateTime, p::Nullable{P})
+    return isnull(p) ? LaxZonedDateTime() : lzdt + get(p)
 end
 
 
