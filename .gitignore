@@ -1,7 +1,7 @@
+# Documenter generated files
+/docs/build/
+/docs/site/
+# GitLabCI generated files
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
-
-# Documenter
-/docs/build/
-/docs/site/
