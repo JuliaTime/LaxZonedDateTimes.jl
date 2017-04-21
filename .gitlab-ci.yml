@@ -82,7 +82,7 @@ stages:
     - genhtml --version
     - mkdir $CI_PROJECT_DIR/combined_coverage
     - cp -r $CI_PROJECT_DIR/src $CI_PROJECT_DIR/combined_coverage/
-    - ls */*.info | xargs -I{} echo "--summary \"{}\"" | xargs lcov --directory src
+    - ls */*.info | xargs -I{} echo '--summary "{}"' | xargs lcov --directory src
     - echo "Test Coverage $(genhtml -o $CI_PROJECT_DIR/combined_coverage --no-prefix */coverage.info 2>&1 | grep lines | awk '{print $2}')"
     - find $CI_PROJECT_DIR/combined_coverage -type f -name "*.jl" -delete
 
