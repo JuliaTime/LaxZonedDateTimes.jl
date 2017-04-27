@@ -101,6 +101,7 @@ end
 
 function (+)(lzdt::LaxZonedDateTime, p::DatePeriod)
     !isrepresentable(lzdt) && (return lzdt)
+    isa(lzdt.timezone, FixedTimeZone) && (return LaxZonedDateTime(ZonedDateTime(lzdt) + p))
 
     local_dt, tz = localtime(lzdt), timezone(lzdt)
     local_dt = local_dt + p
@@ -118,10 +119,8 @@ end
 
 function (+)(lzdt::LaxZonedDateTime, p::TimePeriod)
     !isrepresentable(lzdt) && (return lzdt)
-
-    if isa(lzdt.zone, InvalidTimeZone)
-        return LaxZonedDateTime()
-    end
+    isa(lzdt.timezone, FixedTimeZone) && (return LaxZonedDateTime(ZonedDateTime(lzdt) + p))
+    isa(lzdt.zone, InvalidTimeZone) && (return LaxZonedDateTime())
 
     utc_dt, tz = utc(lzdt), timezone(lzdt)
     possible = interpret(utc_dt + p, tz, UTC)

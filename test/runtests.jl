@@ -118,8 +118,14 @@ import LaxZonedDateTimes: NonExistent, isrepresentable
         utc = TimeZone("UTC")
         fixed = FixedTimeZone("UTC-06:00")
         dt = DateTime(2016, 8, 11, 2, 30)
-        @test ZonedDateTime(LaxZonedDateTime(dt, utc)) == ZonedDateTime(dt, utc)
-        @test ZonedDateTime(LaxZonedDateTime(dt, fixed)) == ZonedDateTime(dt, fixed)
+
+        for t in (utc, fixed)
+            @test ZonedDateTime(LaxZonedDateTime(dt, t)) == ZonedDateTime(dt, t)
+            for p in (Hour(1), Day(1))
+                @test LaxZonedDateTime(dt, t) + p == LaxZonedDateTime(dt + p, t)
+                @test LaxZonedDateTime(dt, t) - p == LaxZonedDateTime(dt - p, t)
+            end
+        end
     end
 
     @testset "null equality" begin
