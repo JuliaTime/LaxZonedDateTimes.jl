@@ -48,7 +48,11 @@ function LaxZonedDateTime(dt::DateTime, tz::TimeZone, zone)
     LaxZonedDateTime(dt, tz, zone, true)
 end
 
-function LaxZonedDateTime(local_dt::DateTime, tz::TimeZone)
+function LaxZonedDateTime(local_dt::DateTime, tz::FixedTimeZone)
+    return LaxZonedDateTime(ZonedDateTime(local_dt, tz))
+end
+
+function LaxZonedDateTime(local_dt::DateTime, tz::VariableTimeZone)
     possible = interpret(local_dt, tz, Local)
 
     num = length(possible)
@@ -76,24 +80,9 @@ function isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
     return hash(x) == hash(y)
 end
 
-# function LaxZonedDateTime(local_dt::DateTime, tz::VariableTimeZone)
-#     possible = interpret(local_dt, tz, Local)
-
-#     num = length(possible)
-#     if num == 1
-#         return LaxZonedDateTime(first(possible))
-#     elseif num == 0
-#         before = first(shift_gap(local_dt, tz))
-#         return LaxZonedDateTime(local_dt, Nullable{DateTime}(), tz, Nullable(before.zone))
-#     else
-#         return LaxZonedDateTime(local_dt, Nullable{DateTime}(), tz, Nullable{FixedTimeZone}())
-#     end
-# end
-
 include("accessors.jl")
 include("rounding.jl")
 include("ranges.jl")
-
 
 function (-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     R = Nullable{Millisecond}
@@ -154,7 +143,6 @@ end
 function (+){P<:Period}(lzdt::LaxZonedDateTime, p::Nullable{P})
     return isnull(p) ? LaxZonedDateTime() : lzdt + get(p)
 end
-
 
 function show(io::IO, lzdt::LaxZonedDateTime)
     if isrepresentable(lzdt)
