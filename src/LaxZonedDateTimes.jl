@@ -3,7 +3,7 @@ module LaxZonedDateTimes
 # Prototype of a new type that is a more context aware Nullable{ZonedDateTime}
 
 using TimeZones
-import Base: +, -, .+, .-, ==, isequal, show
+import Base: +, -, ==, isequal, show, broadcast
 import Base.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
 import TimeZones: ZonedDateTime, utc, localtime, timezone, UTC, Local, interpret
 
@@ -12,18 +12,16 @@ export LaxZonedDateTime,
     isvalid, isambiguous, isnonexistent,
     hour, minute, second, millisecond
 
-abstract InvalidTimeZone <: TimeZone
+abstract type InvalidTimeZone <: TimeZone end
 
-immutable NonExistent <: InvalidTimeZone
-end
+struct NonExistent <: InvalidTimeZone end
 
-immutable Ambiguous <: InvalidTimeZone
-end
+struct Ambiguous <: InvalidTimeZone end
 
 # Seems like we want to keep the UTC datetime even if it doesn't align with our local
 # datetime so that we can still do UTC based calculations.
 
-immutable LaxZonedDateTime <: TimeType
+struct LaxZonedDateTime <: TimeType
     local_datetime::DateTime
     timezone::TimeZone
     zone::Union{FixedTimeZone,InvalidTimeZone}
@@ -93,12 +91,15 @@ function (-)(x::LaxZonedDateTime, y::ZonedDateTime)
     return isvalid(x) ? R(utc(x) - utc(y)) : R()
 end
 (-)(x::ZonedDateTime, y::LaxZonedDateTime) = y - x
-
-(.-)(x::AbstractArray{LaxZonedDateTime}, y::ZonedDateTime) = x .- LaxZonedDateTime(y)
-function (.-)(x::AbstractArray{ZonedDateTime}, y::LaxZonedDateTime)
-    x .- ZonedDateTime(utc(y), timezone(y); from_utc=true)
+#=
+function broadcast(::typeof(-), x::AbstractArray{LaxZonedDateTime}, y::ZonedDateTime)
+    return x .- LaxZonedDateTime(y)
 end
 
+function broadcast(::typeof(-), x::AbstractArray{ZonedDateTime}, y::LaxZonedDateTime)
+    return x .- ZonedDateTime(utc(y), timezone(y); from_utc=true)
+end
+=#
 function (+)(lzdt::LaxZonedDateTime, p::DatePeriod)
     !isrepresentable(lzdt) && (return lzdt)
     isa(lzdt.timezone, FixedTimeZone) && (return LaxZonedDateTime(ZonedDateTime(lzdt) + p))
@@ -205,4 +206,4 @@ function ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:invalid)
     end
 end
 
-end  # module
+end
