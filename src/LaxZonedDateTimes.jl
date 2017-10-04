@@ -1,3 +1,5 @@
+__precompile__()
+
 module LaxZonedDateTimes
 
 # Prototype of a new type that is a more context aware Nullable{ZonedDateTime}
