@@ -53,3 +53,38 @@ function isempty(r::StepRange{LaxZonedDateTime})
         (r.start != r.stop) & ((r.step > zero(r.step)) != (r.stop > r.start))
     )
 end
+
+##### Support for StepRange{AnchoredInterval{LaxZonedDateTime}} #####
+# Ideally this would go in Intervals.jl, but it goes here because it doesn't make sense to
+# reference a private package (this one) in a public package (Intervals.jl)
+
+function guess(
+    start::AnchoredInterval{P, LaxZonedDateTime},
+    finish::AnchoredInterval{P, LaxZonedDateTime},
+    step
+) where P
+    return guess(anchor(start), anchor(finish), step)
+end
+
+function len(
+    start::AnchoredInterval{P, LaxZonedDateTime},
+    finish::AnchoredInterval{P, LaxZonedDateTime},
+    step
+) where P
+    return len(anchor(start), anchor(finish), step)
+end
+
+function steprange_last(
+    start::AnchoredInterval{P, LaxZonedDateTime},
+    step,
+    stop::AnchoredInterval{P, LaxZonedDateTime},
+) where P
+    return AnchoredInterval{P}(steprange_last(anchor(start), step, anchor(stop)))
+end
+
+function isempty(r::StepRange{AnchoredInterval{LaxZonedDateTime}})
+    a_start, a_stop, step = anchor(r.start), anchor(r.stop), r.step
+    return !(isrepresentable(a_start) && isrepresentable(a_stop)) || (
+        (a_start != a_stop) & ((step > zero(step)) != (a_stop > a_start))
+    )
+end

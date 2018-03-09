@@ -5,9 +5,12 @@ module LaxZonedDateTimes
 # Prototype of a new type that is a more context aware Nullable{ZonedDateTime}
 
 using TimeZones
+using TimeZones: UTC, Local, interpret
+using Base.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
+using Intervals
+
+import TimeZones: ZonedDateTime, localtime, utc, timezone
 import Base: +, -, ==, isequal, show, broadcast
-import Base.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
-import TimeZones: ZonedDateTime, utc, localtime, timezone, UTC, Local, interpret
 
 export LaxZonedDateTime,
     # accessors.jl

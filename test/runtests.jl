@@ -1,9 +1,11 @@
 using LaxZonedDateTimes
 using Base.Test
 using TimeZones
-import TimeZones: Transition
-import Base.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
-import LaxZonedDateTimes: NonExistent, isrepresentable
+using TimeZones: Transition
+using Base.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
+using LaxZonedDateTimes: NonExistent, isrepresentable
+
+const winnipeg = TimeZone("America/Winnipeg")
 
 @testset "LaxZonedDateTimes" begin
     t = VariableTimeZone("Testing", [
@@ -36,14 +38,13 @@ import LaxZonedDateTimes: NonExistent, isrepresentable
     @test isequal(ambiguous + Hour(1), null)
 
 
-    wpg = TimeZone("America/Winnipeg")
-    lzdt = LaxZonedDateTime(ZonedDateTime(2015,3,7,2, wpg))
+    lzdt = LaxZonedDateTime(ZonedDateTime(2015,3,7,2, winnipeg))
     lzdt += Day(1)
-    @test lzdt == LaxZonedDateTime(DateTime(2015,3,8,2), wpg, NonExistent())
+    @test lzdt == LaxZonedDateTime(DateTime(2015,3,8,2), winnipeg, NonExistent())
     lzdt += Day(1)
-    @test lzdt == LaxZonedDateTime(ZonedDateTime(2015,3,9,2,wpg))
+    @test lzdt == LaxZonedDateTime(ZonedDateTime(2015,3,9,2,winnipeg))
 
-    non_existent = LaxZonedDateTime(DateTime(2015,3,8,2), wpg, NonExistent())
+    non_existent = LaxZonedDateTime(DateTime(2015,3,8,2), winnipeg, NonExistent())
     @test isequal(non_existent + Hour(1), LaxZonedDateTime())
     @test isequal(non_existent - Hour(1), LaxZonedDateTime())
     @test isequal(non_existent + Hour(0), LaxZonedDateTime())
@@ -56,19 +57,18 @@ import LaxZonedDateTimes: NonExistent, isrepresentable
     using Base.Dates
     using TimeZones
 
-    r = ZonedDateTime(2015,3,9,1,wpg):Hour(1):ZonedDateTime(2015,3,10,wpg)
+    r = ZonedDateTime(2015,3,9,1,winnipeg):Hour(1):ZonedDateTime(2015,3,10,winnipeg)
     a = collect(r)
 
     l = map(LaxZonedDateTime, a)
     l - Day(1)
     =#
 
-    wpg = TimeZone("America/Winnipeg")
-    @test LaxZonedDateTime(ZonedDateTime(2014,wpg)) < ZonedDateTime(2015,wpg)
+    @test LaxZonedDateTime(ZonedDateTime(2014,winnipeg)) < ZonedDateTime(2015,winnipeg)
 
-    amb = LaxZonedDateTime(DateTime(2015,11,1,1),wpg)
-    amb_first = LaxZonedDateTime(ZonedDateTime(2015,11,1,1,wpg,1))
-    amb_last = LaxZonedDateTime(ZonedDateTime(2015,11,1,1,wpg,2))
+    amb = LaxZonedDateTime(DateTime(2015,11,1,1),winnipeg)
+    amb_first = LaxZonedDateTime(ZonedDateTime(2015,11,1,1,winnipeg,1))
+    amb_last = LaxZonedDateTime(ZonedDateTime(2015,11,1,1,winnipeg,2))
 
     @test amb_first < amb_last
     @test !(amb_first < amb)
@@ -76,8 +76,8 @@ import LaxZonedDateTimes: NonExistent, isrepresentable
     @test !(amb_last < amb)
     @test !(amb < amb_last)
 
-    non_existent = LaxZonedDateTime(DateTime(2015,3,8,2),wpg)
-    @test ZonedDateTime(2015,3,8,1,wpg) < non_existent < ZonedDateTime(2015,3,8,3,wpg)
+    non_existent = LaxZonedDateTime(DateTime(2015,3,8,2),winnipeg)
+    @test ZonedDateTime(2015,3,8,1,winnipeg) < non_existent < ZonedDateTime(2015,3,8,3,winnipeg)
 
 
     @test hour(amb) == hour(amb_first) == hour(amb_last) == 1
@@ -90,8 +90,8 @@ import LaxZonedDateTimes: NonExistent, isrepresentable
     @test_throws Exception hour(null)
 
 
-    a = ZonedDateTime(2016, 11, 6, 1, 30, wpg, 1)
-    b = ZonedDateTime(2016, 11, 6, 1, wpg, 2)
+    a = ZonedDateTime(2016, 11, 6, 1, 30, winnipeg, 1)
+    b = ZonedDateTime(2016, 11, 6, 1, winnipeg, 2)
 
     @test LaxZonedDateTime(a) < b
 
@@ -142,7 +142,6 @@ import LaxZonedDateTimes: NonExistent, isrepresentable
     end
 
     @testset "rounding" begin
-        winnipeg = TimeZone("America/Winnipeg")
         st_johns = TimeZone("America/St_Johns")     # UTC-3:30 (or UTC-2:30)
         eucla = TimeZone("Australia/Eucla")         # UTC+8:45
         colombo = TimeZone("Asia/Colombo")          # See note below
@@ -254,8 +253,6 @@ import LaxZonedDateTimes: NonExistent, isrepresentable
     end
 
     @testset "ranges" begin
-        winnipeg = TimeZone("America/Winnipeg")
-
         #=
         If start and/or finish is unrepresentable, the range collects to nothing.
         If start is AMB/DNE, and step is a DatePeriod, it works (start still DNE/AMB)
@@ -624,4 +621,6 @@ import LaxZonedDateTimes: NonExistent, isrepresentable
             ]
         end
     end
+
+    include("intervals.jl")
 end
