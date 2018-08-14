@@ -622,5 +622,30 @@ const winnipeg = TimeZone("America/Winnipeg")
         end
     end
 
+    @testset "ZonedDateTime" begin
+        zdt = ZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
+        lzdt = LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
+        dne = LaxZonedDateTime(DateTime(2015, 3, 8, 2), winnipeg)
+        amb1 = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
+        amb2 = LaxZonedDateTime(DateTime(2017, 11, 5, 1, 45), winnipeg)
+
+        @testset "isequal" begin
+            @test isequal(zdt, lzdt)
+            @test isequal(lzdt, zdt)
+            @test !isequal(zdt, dne)
+            @test isequal(dne, dne)
+            @test !isequal(amb1, amb2)
+            @test isequal(amb1 + Hour(1), amb2 + Hour(1))
+        end
+
+        @testset "hash" begin
+            @test hash(zdt) == hash(lzdt)
+            @test hash(zdt) != hash(dne)
+            @test hash(dne) == hash(dne)
+            @test hash(amb1) != hash(amb2)
+            @test hash(amb1 + Hour(1)) == hash(amb2 + Hour(1))
+        end
+    end
+
     include("intervals.jl")
 end
