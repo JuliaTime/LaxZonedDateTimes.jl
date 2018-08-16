@@ -1,7 +1,7 @@
 using LaxZonedDateTimes
 using Base.Test
 using TimeZones
-using TimeZones: Transition
+using TimeZones: Transition, timezone, utc
 using Base.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
 using LaxZonedDateTimes: NonExistent, isrepresentable
 
@@ -139,6 +139,28 @@ const winnipeg = TimeZone("America/Winnipeg")
         null_2 = LaxZonedDateTime(DateTime(2013, 2, 13, 0, 30), utc, utc, false)
         @test isequal(null, null_2)
         @test hash(null) == hash(null_2)
+    end
+
+    @testset "astimezone" begin
+        warsaw = tz"Europe/Warsaw"
+        zdt = ZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
+        lzdt = LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
+        dne = LaxZonedDateTime(DateTime(2015, 3, 8, 2), winnipeg)
+        amb1 = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
+
+
+        atz_zdt = astimezone(zdt, warsaw)
+        atz_lzdt = astimezone(lzdt, warsaw)
+        @test atz_zdt == atz_lzdt
+        @test timezone(atz_zdt) == timezone(atz_lzdt)
+        @test utc(lzdt) == utc(atz_lzdt)
+
+        atz_dne = astimezone(dne, warsaw)
+        atz_amb = astimezone(amb, warsaw)
+        @test timezone(atz_dne) != warsaw
+        @test timezone(atz_amb) != warsaw
+        @test !isvalid(atz_dne)
+        @test !isvalid(atz_amb)
     end
 
     @testset "rounding" begin

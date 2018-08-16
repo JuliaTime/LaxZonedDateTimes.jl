@@ -84,6 +84,7 @@ function isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
 end
 
 include("accessors.jl")
+include("conversions.jl")
 include("rounding.jl")
 include("ranges.jl")
 
