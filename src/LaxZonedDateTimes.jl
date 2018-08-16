@@ -12,7 +12,7 @@ using Intervals
 import TimeZones: ZonedDateTime, localtime, utc, timezone
 import Base: +, -, ==, isequal, show, broadcast
 
-export LaxZonedDateTime,
+export LaxZonedDateTime, ZDT,
     # accessors.jl
     isvalid, isambiguous, isnonexistent,
     hour, minute, second, millisecond
@@ -210,5 +210,7 @@ function ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:invalid)
         end
     end
 end
+
+const ZDT = Union{ZonedDateTime, LaxZonedDateTime}
 
 end
