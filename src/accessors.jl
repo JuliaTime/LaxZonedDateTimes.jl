@@ -1,4 +1,4 @@
-import Base.Dates: days, hour, minute, second, millisecond
+import Compat.Dates: days, hour, minute, second, millisecond
 
 function localtime(lzdt::LaxZonedDateTime)
     if isrepresentable(lzdt)

@@ -6,11 +6,12 @@ module LaxZonedDateTimes
 
 using TimeZones
 using TimeZones: UTC, Local, interpret
-using Base.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
+using Compat.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
 using Intervals
+using Nullables
 
 import TimeZones: ZonedDateTime, localtime, utc, timezone
-import Base: +, -, ==, isequal, hash, show, broadcast
+import Base: +, -, ==, <=, isequal, hash, show, broadcast
 
 export LaxZonedDateTime, ZDT,
     # accessors.jl
@@ -34,13 +35,13 @@ struct LaxZonedDateTime <: TimeType
 
     function LaxZonedDateTime(dt, tz, zone, rep)
         utc = TimeZone("UTC")
-        return rep ? new(dt, tz, zone, rep) : new(DateTime(), utc, utc, false)
+        return rep ? new(dt, tz, zone, rep) : new(DateTime(0), utc, utc, false)
     end
 end
 
 function LaxZonedDateTime()
     utc = TimeZone("UTC")
-    LaxZonedDateTime(DateTime(), utc, utc, false)
+    LaxZonedDateTime(DateTime(0), utc, utc, false)
 end
 
 function LaxZonedDateTime(zdt::ZonedDateTime)
@@ -189,11 +190,11 @@ end
 # subtracting one LZDT from another returns a Nullable, and StepRange constructor code makes
 # use of the result in a further subtraction. This prevents us from having to rewrite all of
 # the range code.)
-function (-){P<:Period}(lzdt::LaxZonedDateTime, p::Nullable{P})
+function (-)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
     return isnull(p) ? LaxZonedDateTime() : lzdt - get(p)
 end
 
-function (+){P<:Period}(lzdt::LaxZonedDateTime, p::Nullable{P})
+function (+)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
     return isnull(p) ? LaxZonedDateTime() : lzdt + get(p)
 end
 
@@ -222,13 +223,15 @@ function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
         return false
     end
 
-    # Need to compare using UTC  when the zones are fixed and don't have the same offset.
+    # Need to compare using UTC when the zones are fixed and don't have the same offset.
     if a.zone != b.zone && isa(a.zone, FixedTimeZone) && isa(b.zone, FixedTimeZone)
-        return utc(a) < utc(b)
+        return isless(utc(a), utc(b))
     else
-        return localtime(a) < localtime(b)
+        return isless(localtime(a), localtime(b))
     end
 end
+
+(<=)(a::LaxZonedDateTime, b::LaxZonedDateTime) = !(a > b)
 
 function ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:invalid)
     if !isrepresentable(lzdt)

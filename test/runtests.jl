@@ -1,9 +1,10 @@
 using LaxZonedDateTimes
-using Base.Test
+using Compat.Test
 using TimeZones
 using TimeZones: Transition, timezone, utc
-using Base.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
+using Compat.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
 using LaxZonedDateTimes: NonExistent, isrepresentable
+using Nullables
 
 const winnipeg = TimeZone("America/Winnipeg")
 
@@ -108,11 +109,46 @@ const winnipeg = TimeZone("America/Winnipeg")
     @test !isnonexistent(amb_last)
     @test isnonexistent(non_existent)
 
-    @test get(amb_last - amb_first) == Dates.Hour(1)
+    @test get(amb_last - amb_first) == Hour(1)
     @test isnull(amb - amb_first)
     @test isnull(non_existent - amb_first)
     @test isnull(null - amb_first)
 
+
+    @testset "compare" begin
+        @testset "ambiguous" begin
+            dt = DateTime(2016, 11, 6, 1, 45)
+            amb1 = LaxZonedDateTime(ZonedDateTime(dt, tz"America/Winnipeg", 1))
+            amb2 = LaxZonedDateTime(ZonedDateTime(dt, tz"America/Winnipeg", 2))
+            amb = LaxZonedDateTime(dt, tz"America/Winnipeg")
+
+            # Note: the fuzzy matching allows ranges to work correctly. Possibly we should
+            # use a different operator for this.
+            @test amb1 != amb2
+            @test amb1 != amb
+            @test amb2 != amb
+
+            @test isless(amb1, amb2)
+            @test !isless(amb1, amb)
+            @test !isless(amb2, amb)
+
+            @test amb1 < amb2
+            @test !(amb1 < amb)
+            @test !(amb2 < amb)
+
+            @test amb1 <= amb2
+            @test amb1 <= amb  # fuzzy
+            @test amb2 <= amb  # fuzzy
+
+            @test !(amb1 > amb2)
+            @test !(amb1 > amb)
+            @test !(amb2 > amb)
+
+            @test !(amb1 >= amb2)
+            @test amb1 >= amb  # fuzzy
+            @test amb2 >= amb  # fuzzy
+        end
+    end
 
     @testset "FixedTimeZone" begin
         utc = TimeZone("UTC")
