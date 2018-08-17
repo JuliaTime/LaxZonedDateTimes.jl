@@ -11,7 +11,7 @@ using Intervals
 using Nullables
 
 import TimeZones: ZonedDateTime, localtime, utc, timezone
-import Base: +, -, ==, isequal, hash, show, broadcast
+import Base: +, -, ==, <=, isequal, hash, show, broadcast
 
 export LaxZonedDateTime, ZDT,
     # accessors.jl
@@ -223,13 +223,15 @@ function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
         return false
     end
 
-    # Need to compare using UTC  when the zones are fixed and don't have the same offset.
+    # Need to compare using UTC when the zones are fixed and don't have the same offset.
     if a.zone != b.zone && isa(a.zone, FixedTimeZone) && isa(b.zone, FixedTimeZone)
-        return utc(a) < utc(b)
+        return isless(utc(a), utc(b))
     else
-        return localtime(a) < localtime(b)
+        return isless(localtime(a), localtime(b))
     end
 end
+
+(<=)(a::LaxZonedDateTime, b::LaxZonedDateTime) = !(a > b)
 
 function ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:invalid)
     if !isrepresentable(lzdt)

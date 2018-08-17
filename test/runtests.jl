@@ -115,6 +115,41 @@ const winnipeg = TimeZone("America/Winnipeg")
     @test isnull(null - amb_first)
 
 
+    @testset "compare" begin
+        @testset "ambiguous" begin
+            dt = DateTime(2016, 11, 6, 1, 45)
+            amb1 = LaxZonedDateTime(ZonedDateTime(dt, tz"America/Winnipeg", 1))
+            amb2 = LaxZonedDateTime(ZonedDateTime(dt, tz"America/Winnipeg", 2))
+            amb = LaxZonedDateTime(dt, tz"America/Winnipeg")
+
+            # Note: the fuzzy matching allows ranges to work correctly. Possibly we should
+            # use a different operator for this.
+            @test amb1 != amb2
+            @test amb1 != amb
+            @test amb2 != amb
+
+            @test isless(amb1, amb2)
+            @test !isless(amb1, amb)
+            @test !isless(amb2, amb)
+
+            @test amb1 < amb2
+            @test !(amb1 < amb)
+            @test !(amb2 < amb)
+
+            @test amb1 <= amb2
+            @test amb1 <= amb  # fuzzy
+            @test amb2 <= amb  # fuzzy
+
+            @test !(amb1 > amb2)
+            @test !(amb1 > amb)
+            @test !(amb2 > amb)
+
+            @test !(amb1 >= amb2)
+            @test amb1 >= amb  # fuzzy
+            @test amb2 >= amb  # fuzzy
+        end
+    end
+
     @testset "FixedTimeZone" begin
         utc = TimeZone("UTC")
         fixed = FixedTimeZone("UTC-06:00")
