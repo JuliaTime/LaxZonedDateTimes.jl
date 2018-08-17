@@ -84,7 +84,7 @@ function (==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
 end
 
 function (==)(x::LaxZonedDateTime, y::ZonedDateTime)
-    if isvalid(x) && isvalid(y)
+    if isvalid(x)
         return utc(x) == utc(y)
     else
         return false
