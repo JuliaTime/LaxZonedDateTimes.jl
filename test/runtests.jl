@@ -1,5 +1,5 @@
 using LaxZonedDateTimes
-using Base.Test
+using Compat.Test
 using TimeZones
 using TimeZones: Transition, timezone, utc
 using Compat.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
