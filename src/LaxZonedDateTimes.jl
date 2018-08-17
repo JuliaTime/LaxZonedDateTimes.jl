@@ -8,6 +8,7 @@ using TimeZones
 using TimeZones: UTC, Local, interpret
 using Base.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
 using Intervals
+using Nullables
 
 import TimeZones: ZonedDateTime, localtime, utc, timezone
 import Base: +, -, ==, isequal, hash, show, broadcast
@@ -189,11 +190,11 @@ end
 # subtracting one LZDT from another returns a Nullable, and StepRange constructor code makes
 # use of the result in a further subtraction. This prevents us from having to rewrite all of
 # the range code.)
-function (-){P<:Period}(lzdt::LaxZonedDateTime, p::Nullable{P})
+function (-)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
     return isnull(p) ? LaxZonedDateTime() : lzdt - get(p)
 end
 
-function (+){P<:Period}(lzdt::LaxZonedDateTime, p::Nullable{P})
+function (+)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
     return isnull(p) ? LaxZonedDateTime() : lzdt + get(p)
 end
 

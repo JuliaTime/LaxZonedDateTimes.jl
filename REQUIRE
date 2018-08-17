@@ -1,3 +1,4 @@
 julia 0.6
 TimeZones 0.8.0
 Intervals 0.3.2
+Nullables 0.0.7

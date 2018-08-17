@@ -4,6 +4,7 @@ using TimeZones
 using TimeZones: Transition, timezone, utc
 using Base.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
 using LaxZonedDateTimes: NonExistent, isrepresentable
+using Nullables
 
 const winnipeg = TimeZone("America/Winnipeg")
 
