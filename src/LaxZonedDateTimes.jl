@@ -10,7 +10,7 @@ using Base.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
 using Intervals
 
 import TimeZones: ZonedDateTime, localtime, utc, timezone
-import Base: +, -, ==, isequal, show, broadcast
+import Base: +, -, ==, isequal, hash, show, broadcast
 
 export LaxZonedDateTime, ZDT,
     # accessors.jl
@@ -71,17 +71,64 @@ function LaxZonedDateTime(local_dt::DateTime, tz::VariableTimeZone)
 end
 
 function (==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
-    return (
-        x.representable == y.representable == true &&
-        x.local_datetime == y.local_datetime &&
-        x.timezone == y.timezone &&
-        x.zone == y.zone
-    )
+    if isvalid(x) && isvalid(y)
+        return utc(x) == utc(y)
+    else
+        return (
+            x.representable == y.representable == true &&
+            x.local_datetime == y.local_datetime &&
+            x.timezone == y.timezone &&
+            x.zone == y.zone
+        )
+    end
 end
 
-function isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
-    return hash(x) == hash(y)
+function (==)(x::LaxZonedDateTime, y::ZonedDateTime)
+    if isvalid(x) && isvalid(y)
+        return utc(x) == utc(y)
+    else
+        return false
+    end
 end
+
+(==)(x::ZonedDateTime, y::LaxZonedDateTime) = y == x
+
+# Note: `hash` and `isequal` assume that the "zone" of a ZonedDateTime is not being set
+# incorrectly.
+
+function isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
+    if isvalid(x) && isvalid(y)
+        return isequal(utc(x), utc(y))
+    else
+        return (
+            isequal(x.local_datetime, y.local_datetime) &&
+            isequal(x.timezone, y.timezone) &&
+            isequal(x.zone, y.zone) &&
+            isequal(x.representable, y.representable)
+        )
+    end
+end
+
+function isequal(x::LaxZonedDateTime, y::ZonedDateTime)
+    isvalid(x) ? isequal(utc(x), utc(y)) : false
+end
+
+isequal(x::ZonedDateTime, y::LaxZonedDateTime) = isequal(y, x)
+
+# Valid LaxZonedDateTimes should hash to the same value as the equivalent ZonedDateTime
+# All invalid or unrepresentable LaxZonedDateTimes should always hash to a different value.
+function hash(lzdt::LaxZonedDateTime, h::UInt)
+    if isvalid(lzdt)
+        h = hash(:utc_instant, h)
+        h = hash(utc(lzdt), h)
+    else
+        h = hash(:invalid_utc_instant, h)
+        h = hash(lzdt.local_datetime, h)
+    end
+
+    return h
+end
+
 
 include("accessors.jl")
 include("conversions.jl")
