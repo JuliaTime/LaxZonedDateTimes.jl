@@ -626,6 +626,7 @@ const winnipeg = TimeZone("America/Winnipeg")
         zdt = ZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
         lzdt = LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
         dne = LaxZonedDateTime(DateTime(2015, 3, 8, 2), winnipeg)
+        nonamb = LaxZonedDateTime(ZonedDateTime(2017, 11, 6, 1, 45, winnipeg, 1))
         amb1 = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
         amb2 = LaxZonedDateTime(DateTime(2017, 11, 5, 1, 45), winnipeg)
 
@@ -636,6 +637,7 @@ const winnipeg = TimeZone("America/Winnipeg")
             @test isequal(dne, dne)
             @test !isequal(amb1, amb2)
             @test isequal(amb1 + Hour(1), amb2 + Hour(1))
+            @test !isequal(amb1, nonamb)
         end
 
         @testset "hash" begin
