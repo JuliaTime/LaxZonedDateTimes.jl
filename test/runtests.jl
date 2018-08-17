@@ -2,7 +2,7 @@ using LaxZonedDateTimes
 using Base.Test
 using TimeZones
 using TimeZones: Transition, timezone, utc
-using Base.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
+using Compat.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
 using LaxZonedDateTimes: NonExistent, isrepresentable
 using Nullables
 
@@ -109,7 +109,7 @@ const winnipeg = TimeZone("America/Winnipeg")
     @test !isnonexistent(amb_last)
     @test isnonexistent(non_existent)
 
-    @test get(amb_last - amb_first) == Dates.Hour(1)
+    @test get(amb_last - amb_first) == Hour(1)
     @test isnull(amb - amb_first)
     @test isnull(non_existent - amb_first)
     @test isnull(null - amb_first)

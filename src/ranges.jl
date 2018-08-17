@@ -1,9 +1,9 @@
-import Base.Dates: guess, len
+import Compat.Dates: Millisecond, guess, len
 import Base: steprange_last, steprange_last_empty, isempty, colon
 
 # Because `stop - start` returns a `Nullable{Millisecond}` we need to define this
 function colon(start::LaxZonedDateTime, stop::LaxZonedDateTime)
-    return StepRange(start, Base.Dates.Millisecond(1), stop)
+    return StepRange(start, Millisecond(1), stop)
 end
 
 """

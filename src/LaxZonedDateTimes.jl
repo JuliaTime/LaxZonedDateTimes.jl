@@ -6,7 +6,7 @@ module LaxZonedDateTimes
 
 using TimeZones
 using TimeZones: UTC, Local, interpret
-using Base.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
+using Compat.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
 using Intervals
 using Nullables
 
@@ -35,13 +35,13 @@ struct LaxZonedDateTime <: TimeType
 
     function LaxZonedDateTime(dt, tz, zone, rep)
         utc = TimeZone("UTC")
-        return rep ? new(dt, tz, zone, rep) : new(DateTime(), utc, utc, false)
+        return rep ? new(dt, tz, zone, rep) : new(DateTime(0), utc, utc, false)
     end
 end
 
 function LaxZonedDateTime()
     utc = TimeZone("UTC")
-    LaxZonedDateTime(DateTime(), utc, utc, false)
+    LaxZonedDateTime(DateTime(0), utc, utc, false)
 end
 
 function LaxZonedDateTime(zdt::ZonedDateTime)
