@@ -1,10 +1,17 @@
 import Compat.Dates: Millisecond, guess, len
-import Base: steprange_last, steprange_last_empty, isempty, colon
+import Base: steprange_last, steprange_last_empty, isempty
 
 # Because `stop - start` returns a `Nullable{Millisecond}` we need to define this
-function colon(start::LaxZonedDateTime, stop::LaxZonedDateTime)
-    return StepRange(start, Millisecond(1), stop)
+if VERSION < v"0.7.0-DEV.4003"
+    function Base.colon(start::LaxZonedDateTime, stop::LaxZonedDateTime)
+        return StepRange(start, Millisecond(1), stop)
+    end
+else
+    function Base.:(:)(start::LaxZonedDateTime, stop::LaxZonedDateTime)
+        return StepRange(start, Millisecond(1), stop)
+    end
 end
+
 
 """
     guess(start::LaxZonedDateTime, finish::LaxZonedDateTime, step) -> Integer
