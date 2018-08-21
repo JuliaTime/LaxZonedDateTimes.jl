@@ -71,6 +71,15 @@ function LaxZonedDateTime(local_dt::DateTime, tz::VariableTimeZone)
     return lzdt
 end
 
+# We need to define the behaviour for constructing an empty Interval of LaxZonedDateTimes
+function Intervals.Interval{T}() where T <: LaxZonedDateTime
+    return Interval{T}(
+        T(DateTime(0), tz"UTC"),
+        T(DateTime(0), tz"UTC"),
+        Inclusivity(false, false)
+    )
+end
+
 function (==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     if isvalid(x) && isvalid(y)
         return utc(x) == utc(y)
