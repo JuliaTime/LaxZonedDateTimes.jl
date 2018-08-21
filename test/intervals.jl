@@ -82,4 +82,22 @@ using Intervals
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
         ]
     end
+    @testset "intersect" begin
+        a = Interval(
+            LaxZonedDateTime(DateTime(2013, 2, 7), winnipeg),
+            LaxZonedDateTime(DateTime(2013, 2, 9, 1), winnipeg),
+            false,
+            true
+        )
+
+        b = Interval(
+            LaxZonedDateTime(DateTime(2013, 2, 12), winnipeg),
+            LaxZonedDateTime(DateTime(2013, 2, 14, 4), winnipeg),
+            false,
+            true
+        )
+
+        zero_lzdt = LaxZonedDateTime(DateTime(0), tz"UTC")
+        @test intersect(a, b) == Interval(zero_lzdt, zero_lzdt, false, false)
+    end
 end
