@@ -100,4 +100,36 @@ using Intervals
         zero_lzdt = LaxZonedDateTime(DateTime(0), tz"UTC")
         @test intersect(a, b) == Interval(zero_lzdt, zero_lzdt, false, false)
     end
+    @testset "astimezone" begin
+        @testset "Intervals" begin
+            warsaw = tz"Europe/Warsaw"
+            dt = DateTime(2016, 11, 10, 1, 45)
+            zdt = Interval(
+                ZonedDateTime(dt - Hour(1), winnipeg),
+                ZonedDateTime(dt, winnipeg),
+                false,
+                true
+            )
+            lzdt = Interval(
+                LaxZonedDateTime(first(zdt)),
+                LaxZonedDateTime(last(zdt)),
+                false,
+                true
+            )
+
+            atz_zdt = astimezone(zdt, warsaw)
+            atz_lzdt = astimezone(lzdt, warsaw)
+            @test atz_zdt == atz_lzdt
+        end
+
+        @testset "AnchoredIntervals" begin
+            warsaw = tz"Europe/Warsaw"
+            zdt = HE(ZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg))
+            lzdt = HE(LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg))
+
+            atz_zdt = astimezone(zdt, warsaw)
+            atz_lzdt = astimezone(lzdt, warsaw)
+            @test atz_zdt == atz_lzdt
+        end
+    end
 end
