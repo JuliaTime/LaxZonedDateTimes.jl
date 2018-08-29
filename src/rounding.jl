@@ -176,12 +176,12 @@ Rounding a `LaxZonedDateTime` that is in an ambiguous or non-existent state to a
 boundaries, this will typically return the `LaxZonedDatetime` to a valid state).
 
 Rounding an ambiguous or non-existent `LaxZonedDateTime` to a `TimePeriod` will result in
-a non-representable (invalid) state that is unrecoverable.
+a non-representable state that is unrecoverable.
 
 When `round`ing a `LaxZonedDateTime` using `RoundNearestTiesUp`, `round` needs to decide
 whether `floor` or `ceil` is "closer" to the original date. In cases where `floor` or `ceil` result
 would return a result that is either ambiguous or non-existent, `round` is unable to
-determine which result is to be preferred, and will return a non-representable (invalid)
+determine which result is to be preferred, and will return a non-representable
 `LaxZonedDateTime`.
 
 ### Examples

@@ -96,6 +96,23 @@ const winnipeg = TimeZone("America/Winnipeg")
 
     @test LaxZonedDateTime(a) < b
 
+    @test !isvalid(null)
+    @test !isvalid(amb)
+    @test isvalid(amb_first)
+    @test isvalid(amb_last)
+    @test !isvalid(non_existent)
+
+    @test !isinvalid(null)
+    @test isinvalid(amb)
+    @test !isinvalid(amb_first)
+    @test !isinvalid(amb_last)
+    @test isinvalid(non_existent)
+
+    @test !isrepresentable(null)
+    @test isrepresentable(amb)
+    @test isrepresentable(amb_first)
+    @test isrepresentable(amb_last)
+    @test isrepresentable(non_existent)
 
     @test !isambiguous(null)
     @test isambiguous(amb)
@@ -477,7 +494,7 @@ const winnipeg = TimeZone("America/Winnipeg")
             ]
         end
 
-        @testset "start with invalid" begin
+        @testset "start with unrepresentable" begin
             # start is unrepresentable
             start = LaxZonedDateTime()
             finish = LaxZonedDateTime(DateTime(2016, 3, 13, 8, 45), winnipeg)
@@ -564,7 +581,7 @@ const winnipeg = TimeZone("America/Winnipeg")
             ]
         end
 
-        @testset "finish with invalid" begin
+        @testset "finish with unrepresentable" begin
             # finish is unrepresentable
             start = LaxZonedDateTime(DateTime(2016, 3, 13, 3, 45), winnipeg)
             finish = LaxZonedDateTime()

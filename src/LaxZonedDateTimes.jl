@@ -15,7 +15,7 @@ import Base: +, -, ==, <=, isequal, hash, show, broadcast
 
 export LaxZonedDateTime, ZDT,
     # accessors.jl
-    isvalid, isambiguous, isnonexistent,
+    isvalid, isinvalid, isambiguous, isnonexistent,
     hour, minute, second, millisecond
 
 abstract type InvalidTimeZone <: TimeZone end
@@ -219,7 +219,7 @@ function show(io::IO, lzdt::LaxZonedDateTime)
             print(io, lzdt.zone.offset)
         end
     else
-        print(io, "INVALID")
+        print(io, "unrepresentable")
     end
 end
 
@@ -242,7 +242,15 @@ end
 
 (<=)(a::LaxZonedDateTime, b::LaxZonedDateTime) = !(a > b)
 
-function ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:invalid)
+function ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:throw)
+    if ambiguous == :invalid
+        Base.depwarn(
+            "Use of `ambiguous=:invalid` is deprecated, use `ambiguous=:throw` instead",
+            :ZonedDateTime,
+        )
+        ambiguous = :throw
+    end
+
     if !isrepresentable(lzdt)
         throw(ArgumentError("Unable to determine UTC datetime from an unrepresentable LaxZonedDateTime"))
     end
