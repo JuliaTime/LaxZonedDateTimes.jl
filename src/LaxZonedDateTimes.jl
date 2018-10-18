@@ -6,7 +6,8 @@ module LaxZonedDateTimes
 
 using TimeZones
 using TimeZones: UTC, Local, interpret
-using Compat.Dates: DatePeriod, TimePeriod, TimeType, Millisecond
+using Compat.Dates: DatePeriod, TimePeriod, Millisecond
+using Compat: AbstractDateTime
 using Intervals
 using Nullables
 
@@ -27,7 +28,7 @@ struct Ambiguous <: InvalidTimeZone end
 # Seems like we want to keep the UTC datetime even if it doesn't align with our local
 # datetime so that we can still do UTC based calculations.
 
-struct LaxZonedDateTime <: TimeType
+struct LaxZonedDateTime <: AbstractDateTime
     local_datetime::DateTime
     timezone::TimeZone
     zone::Union{FixedTimeZone,InvalidTimeZone}
