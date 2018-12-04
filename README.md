@@ -1,6 +1,5 @@
 # LaxZonedDateTimes
-[![stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://doc.invenia.ca/invenia/LaxZonedDateTimes.jl/master)
-[![latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://doc.invenia.ca/invenia/LaxZonedDateTimes.jl/master)
+[![latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://invenia.pages.invenia.ca/LaxZonedDateTimes.jl/)
 [![build status](https://gitlab.invenia.ca/invenia/LaxZonedDateTimes.jl/badges/master/build.svg)](https://gitlab.invenia.ca/invenia/LaxZonedDateTimes.jl/commits/master)
 [![coverage](https://gitlab.invenia.ca/invenia/LaxZonedDateTimes.jl/badges/master/coverage.svg)](https://gitlab.invenia.ca/invenia/LaxZonedDateTimes.jl/commits/master)
 
@@ -70,7 +69,7 @@ julia> collect(r)
 6-element Array{LaxZonedDateTimes.LaxZonedDateTime,1}:
  2016-03-11T02:00:00-06:00
  2016-03-12T02:00:00-06:00
- 2016-03-13T02:00:00-DNE  
+ 2016-03-13T02:00:00-DNE
  2016-03-14T02:00:00-05:00
  2016-03-15T02:00:00-05:00
  2016-03-16T02:00:00-05:00
