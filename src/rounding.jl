@@ -5,13 +5,21 @@ function Base.floor(lzdt::LaxZonedDateTime, p::DatePeriod)
 end
 
 function Base.floor(lzdt::LaxZonedDateTime, p::TimePeriod)
-    # Rounding ambiguous, nonexistent, or non-representable dates doesn't work.
-    !isvalid(lzdt) && (return LaxZonedDateTime())
+    # Rounding non-representable dates doesn't work.
+    !isrepresentable(lzdt) && (return LaxZonedDateTime())
 
-    # Rounding is done using the current fixed offset to avoid transitional ambiguities.
-    dt = floor(localtime(lzdt), p)
-    utc_dt = dt - lzdt.zone.offset
-    return LaxZonedDateTime(ZonedDateTime(utc_dt, timezone(lzdt); from_utc=true))
+    local_dt = localtime(lzdt)
+    local_dt_floored = floor(local_dt, p)
+
+    if local_dt == local_dt_floored
+        lzdt
+    elseif isvalid(lzdt)
+        # Rounding is done using the current fixed offset to avoid transitional ambiguities.
+        utc_dt_floored = local_dt_floored - lzdt.zone.offset
+        LaxZonedDateTime(ZonedDateTime(utc_dt_floored, timezone(lzdt); from_utc=true))
+    else
+        LaxZonedDateTime()
+    end
 end
 
 function Base.ceil(lzdt::LaxZonedDateTime, p::DatePeriod)
@@ -21,21 +29,29 @@ end
 # TODO: Additional performance gains can be made for round
 
 function Base.round(lzdt::LaxZonedDateTime, p::DatePeriod, r::RoundingMode{:NearestTiesUp})
-    !isrepresentable(lzdt) && return LaxZonedDateTime()
     f, c = floorceil(lzdt, p)
-    # If floor or ceil is ambiguous/nonexistent/non-representable, we can't pick.
-    !(isvalid(f) && isvalid(c)) && return LaxZonedDateTime()
-    local_dt = localtime(lzdt)
-    return local_dt - localtime(f) < localtime(c) - local_dt ? f : c
+
+    if f == c
+        f
+    elseif isvalid(f) && isvalid(c)
+        local_dt = localtime(lzdt)
+        local_dt - localtime(f) < localtime(c) - local_dt ? f : c
+    else
+        LaxZonedDateTime()
+    end
 end
 
 function Base.round(lzdt::LaxZonedDateTime, p::TimePeriod, r::RoundingMode{:NearestTiesUp})
-    !isvalid(lzdt) && return LaxZonedDateTime()
     f, c = floorceil(lzdt, p)
-    # If floor or ceil is ambiguous/nonexistent/non-representable, we can't pick.
-    !(isvalid(f) && isvalid(c)) && return LaxZonedDateTime()
-    utc_dt = utc(lzdt)
-    return utc_dt - utc(f) < utc(c) - utc_dt ? f : c
+
+    if f == c
+        f
+    elseif isvalid(f) && isvalid(c)
+        utc_dt = utc(lzdt)
+        utc_dt - utc(f) < utc(c) - utc_dt ? f : c
+    else
+        LaxZonedDateTime()
+    end
 end
 
 """

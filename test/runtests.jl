@@ -327,8 +327,22 @@ const winnipeg = TimeZone("America/Winnipeg")
             end
         end
 
+        @testset "non-existent rounded" begin
+            dne_lzdt = LaxZonedDateTime(DateTime(2016, 3, 13, 2), winnipeg)
+            @test isnonexistent(dne_lzdt)
 
+            @test floor(dne_lzdt, Hour) == dne_lzdt
+            @test ceil(dne_lzdt, Hour) == dne_lzdt
+            @test round(dne_lzdt, Hour) == dne_lzdt
+        end
 
+        @testset "ambiguous rounded" begin
+            amb_lzdt = LaxZonedDateTime(DateTime(2015, 11, 1, 1), winnipeg)
+            @test isambiguous(amb_lzdt)
+
+            @test floor(amb_lzdt, Hour) == amb_lzdt
+            @test ceil(amb_lzdt, Hour) == amb_lzdt
+            @test round(amb_lzdt, Hour) == amb_lzdt
         end
     end
 
