@@ -1,8 +1,9 @@
+using Compat: nameof
 using LaxZonedDateTimes
 using Compat.Test
 using TimeZones
 using TimeZones: Transition, timezone, utc
-using Compat.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond
+using Compat.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond, DatePeriod
 using LaxZonedDateTimes: NonExistent, isrepresentable
 using Nullables
 
@@ -232,6 +233,8 @@ const winnipeg = TimeZone("America/Winnipeg")
         from 00:30 to 00:00.
         =#
 
+        periods = (Year, Month, Week, Day, Hour, Minute, Second)
+
         @testset "basic" begin
             dt = DateTime(2016, 2, 5, 13, 10, 20, 500)
             for tz in [winnipeg, st_johns, eucla, colombo]
@@ -286,44 +289,46 @@ const winnipeg = TimeZone("America/Winnipeg")
             lzdt = LaxZonedDateTime(DateTime(1996, 10, 25, 23, 45), colombo)
             @test round(lzdt, Hour) == LaxZonedDateTime(ZonedDateTime(1996, 10, 26, colombo, 1))
             @test !isrepresentable(round(lzdt, Day))
+        end
 
-            # Rounding ambiguous or missing dates to a `TimePeriod` results in
-            # unrepresentable values.
-            lzdt = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
-            @test !isvalid(lzdt)
-            @test !isambiguous(lzdt)
-            @test isnonexistent(lzdt)
-            @test isrepresentable(lzdt)
+        @testset "non-existent" begin
+            dne_lzdt = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 0, 0, 1), winnipeg)
+            @test !isvalid(dne_lzdt)
+            @test !isambiguous(dne_lzdt)
+            @test isnonexistent(dne_lzdt)
+            @test isrepresentable(dne_lzdt)
 
-            for p in [Year, Month, Week, Day]
-                for r in [floor, ceil, round]
-                    @test isrepresentable(r(lzdt, p))
+            @testset "$(nameof(P))" for P in periods, f in (floor, ceil, round)
+                result = f(dne_lzdt, P)
+
+                if P <: DatePeriod
+                    @test isrepresentable(result)
+                else
+                    @test !isrepresentable(result)
                 end
             end
+        end
 
-            for p in [Hour, Minute, Second]
-                for r in [floor, ceil, round]
-                    @test !isrepresentable(r(lzdt, p))
+        @testset "ambiguous" begin
+            amb_lzdt = LaxZonedDateTime(DateTime(2015, 11, 1, 1, 0, 0, 1), winnipeg)
+            @test !isvalid(amb_lzdt)
+            @test isambiguous(amb_lzdt)
+            @test !isnonexistent(amb_lzdt)
+            @test isrepresentable(amb_lzdt)
+
+            @testset "$(nameof(P))" for P in periods, f in (floor, ceil, round)
+                result = f(amb_lzdt, P)
+
+                if P <: DatePeriod
+                    @test isrepresentable(result)
+                else
+                    @test !isrepresentable(result)
                 end
             end
+        end
 
-            lzdt = LaxZonedDateTime(DateTime(2015, 11, 1, 1, 15), winnipeg)
-            @test !isvalid(lzdt)
-            @test isambiguous(lzdt)
-            @test !isnonexistent(lzdt)
-            @test isrepresentable(lzdt)
 
-            for p in [Year, Month, Week, Day]
-                for r in [floor, ceil, round]
-                    @test isrepresentable(r(lzdt, p))
-                end
-            end
 
-            for p in [Hour, Minute, Second]
-                for r in [floor, ceil, round]
-                    @test !isrepresentable(r(lzdt, p))
-                end
-            end
         end
     end
 
