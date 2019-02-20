@@ -227,14 +227,6 @@ end
 Base.:(<=)(a::LaxZonedDateTime, b::LaxZonedDateTime) = !(a > b)
 
 function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:throw)
-    if ambiguous == :invalid
-        Base.depwarn(
-            "Use of `ambiguous=:invalid` is deprecated, use `ambiguous=:throw` instead",
-            :ZonedDateTime,
-        )
-        ambiguous = :throw
-    end
-
     if !isrepresentable(lzdt)
         throw(ArgumentError("Unable to determine UTC datetime from an unrepresentable LaxZonedDateTime"))
     end
