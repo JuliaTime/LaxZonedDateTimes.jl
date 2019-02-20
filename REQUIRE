@@ -1,5 +1,4 @@
 julia 0.7
-Compat 0.37
 Intervals 0.3.2
 Nullables 0.0.7
 TimeZones 0.8.0

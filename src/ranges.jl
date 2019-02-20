@@ -1,15 +1,8 @@
-import Compat.Dates: Millisecond, guess, len
-import Base: steprange_last, steprange_last_empty, isempty
+using Dates: Millisecond, guess, len
+using Base: steprange_last, steprange_last_empty
 
-# Because `stop - start` returns a `Nullable{Millisecond}` we need to define this
-if VERSION < v"0.7.0-DEV.4003"
-    function Base.colon(start::LaxZonedDateTime, stop::LaxZonedDateTime)
-        return StepRange(start, Millisecond(1), stop)
-    end
-else
-    function Base.:(:)(start::LaxZonedDateTime, stop::LaxZonedDateTime)
-        return StepRange(start, Millisecond(1), stop)
-    end
+function Base.:(:)(start::LaxZonedDateTime, stop::LaxZonedDateTime)
+    return StepRange(start, Millisecond(1), stop)
 end
 
 
@@ -20,12 +13,12 @@ Given a start and end date, indicates how many steps/periods are between them. D
 function allows `StepRange`s to be defined for `LaxZonedDateTime`s. (For non-empty
 `StepRange`s, `guess` will ideally return one less than the number of elements.)
 """
-function guess(start::LaxZonedDateTime, finish::LaxZonedDateTime, step)
+function Dates.guess(start::LaxZonedDateTime, finish::LaxZonedDateTime, step)
     isvalid(start) && isvalid(finish) && return guess(utc(start), utc(finish), step)
     return 0    # Can't easily guess. It will be calculated with len instead.
 end
 
-function len(start::LaxZonedDateTime, finish::LaxZonedDateTime, step)
+function Dates.len(start::LaxZonedDateTime, finish::LaxZonedDateTime, step)
     !(isrepresentable(start) && isrepresentable(finish)) && return 0
 
     # Because of the way unrepresentable LZDTs can propagate, we need to start counting from
@@ -39,7 +32,7 @@ function len(start::LaxZonedDateTime, finish::LaxZonedDateTime, step)
     return i - 1
 end
 
-function steprange_last(start::LaxZonedDateTime, step, stop::LaxZonedDateTime)
+function Base.steprange_last(start::LaxZonedDateTime, step, stop::LaxZonedDateTime)
     z = zero(step)
     step == z && throw(ArgumentError("step cannot be zero"))
 
@@ -55,7 +48,7 @@ function steprange_last(start::LaxZonedDateTime, step, stop::LaxZonedDateTime)
     return last
 end
 
-function isempty(r::StepRange{LaxZonedDateTime})
+function Base.isempty(r::StepRange{LaxZonedDateTime})
     return !(isrepresentable(r.start) && isrepresentable(r.stop)) || (
         (r.start != r.stop) & ((r.step > zero(r.step)) != (r.stop > r.start))
     )
@@ -65,7 +58,7 @@ end
 # Ideally this would go in Intervals.jl, but it goes here because it doesn't make sense to
 # reference a private package (this one) in a public package (Intervals.jl)
 
-function guess(
+function Dates.guess(
     start::AnchoredInterval{P, LaxZonedDateTime},
     finish::AnchoredInterval{P, LaxZonedDateTime},
     step
@@ -73,7 +66,7 @@ function guess(
     return guess(anchor(start), anchor(finish), step)
 end
 
-function len(
+function Dates.len(
     start::AnchoredInterval{P, LaxZonedDateTime},
     finish::AnchoredInterval{P, LaxZonedDateTime},
     step
@@ -81,7 +74,7 @@ function len(
     return len(anchor(start), anchor(finish), step)
 end
 
-function steprange_last(
+function Base.steprange_last(
     start::AnchoredInterval{P, LaxZonedDateTime},
     step,
     stop::AnchoredInterval{P, LaxZonedDateTime},
@@ -89,7 +82,7 @@ function steprange_last(
     return AnchoredInterval{P}(steprange_last(anchor(start), step, anchor(stop)))
 end
 
-function isempty(r::StepRange{AnchoredInterval{LaxZonedDateTime}})
+function Base.isempty(r::StepRange{AnchoredInterval{LaxZonedDateTime}})
     a_start, a_stop, step = anchor(r.start), anchor(r.stop), r.step
     return !(isrepresentable(a_start) && isrepresentable(a_stop)) || (
         (a_start != a_stop) & ((step > zero(step)) != (a_stop > a_start))

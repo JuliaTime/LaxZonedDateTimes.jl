@@ -1,6 +1,6 @@
-import Compat.Dates: days, hour, minute, second, millisecond
+using Dates: days, hour, minute, second, millisecond
 
-function localtime(lzdt::LaxZonedDateTime)
+function TimeZones.localtime(lzdt::LaxZonedDateTime)
     if isrepresentable(lzdt)
         return lzdt.local_datetime
     else
@@ -8,8 +8,8 @@ function localtime(lzdt::LaxZonedDateTime)
     end
 end
 
-utc(lzdt::LaxZonedDateTime) = utc(ZonedDateTime(lzdt))
-timezone(lzdt::LaxZonedDateTime) = lzdt.timezone
+TimeZones.utc(lzdt::LaxZonedDateTime) = utc(ZonedDateTime(lzdt))
+TimeZones.timezone(lzdt::LaxZonedDateTime) = lzdt.timezone
 
 """
     isrepresentable(lzdt::LaxZonedDateTime) -> Bool
@@ -38,12 +38,12 @@ isinvalid(lzdt::LaxZonedDateTime) = isrepresentable(lzdt) && isa(lzdt.zone, Inva
 isambiguous(lzdt::LaxZonedDateTime) = isa(lzdt.zone, Ambiguous)
 isnonexistent(lzdt::LaxZonedDateTime) = isa(lzdt.zone, NonExistent)
 
-days(lzdt::LaxZonedDateTime) = days(localtime(lzdt))
+Dates.days(lzdt::LaxZonedDateTime) = days(localtime(lzdt))
 
 for period in (:Hour, :Minute, :Second, :Millisecond)
     accessor = Symbol(lowercase(string(period)))
     @eval begin
-        $accessor(lzdt::LaxZonedDateTime) = $accessor(localtime(lzdt))
-        $period(lzdt::LaxZonedDateTime) = $period($accessor(lzdt))
+        Dates.$accessor(lzdt::LaxZonedDateTime) = $accessor(localtime(lzdt))
+        Dates.$period(lzdt::LaxZonedDateTime) = $period($accessor(lzdt))
     end
 end

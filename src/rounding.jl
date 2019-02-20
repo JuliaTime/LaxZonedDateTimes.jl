@@ -1,4 +1,4 @@
-import Compat.Dates: Period, DatePeriod, TimePeriod, floorceil
+using Dates: Period, DatePeriod, TimePeriod, floorceil
 
 function Base.floor(lzdt::LaxZonedDateTime, p::DatePeriod)
     return LaxZonedDateTime(floor(localtime(lzdt), p), timezone(lzdt))

@@ -1,11 +1,10 @@
-using Compat: nameof
+using Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond, DatePeriod
 using LaxZonedDateTimes
-using Compat.Test
-using TimeZones
-using TimeZones: Transition, timezone, utc
-using Compat.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond, DatePeriod
 using LaxZonedDateTimes: NonExistent, isrepresentable
 using Nullables
+using TimeZones
+using TimeZones: Transition, timezone, utc
+using Test
 
 const winnipeg = TimeZone("America/Winnipeg")
 

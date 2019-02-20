@@ -4,15 +4,11 @@ module LaxZonedDateTimes
 
 # Prototype of a new type that is a more context aware Nullable{ZonedDateTime}
 
-using TimeZones
-using TimeZones: UTC, Local, interpret
-using Compat.Dates: DatePeriod, TimePeriod, Millisecond
-using Compat: AbstractDateTime
+using Dates: Dates, AbstractDateTime, DatePeriod, TimePeriod, DateTime, Millisecond
 using Intervals
 using Nullables
-
-import TimeZones: ZonedDateTime, localtime, utc, timezone
-import Base: +, -, ==, <=, isequal, hash, show, broadcast
+using TimeZones
+using TimeZones: UTC, Local, interpret, localtime, utc, timezone
 
 export LaxZonedDateTime, ZDT,
     # accessors.jl
@@ -81,7 +77,7 @@ function Intervals.Interval{T}() where T <: LaxZonedDateTime
     )
 end
 
-function (==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
+function Base.:(==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     if isvalid(x) && isvalid(y)
         return utc(x) == utc(y)
     else
@@ -94,7 +90,7 @@ function (==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     end
 end
 
-function (==)(x::LaxZonedDateTime, y::ZonedDateTime)
+function Base.:(==)(x::LaxZonedDateTime, y::ZonedDateTime)
     if isvalid(x)
         return utc(x) == utc(y)
     else
@@ -102,12 +98,12 @@ function (==)(x::LaxZonedDateTime, y::ZonedDateTime)
     end
 end
 
-(==)(x::ZonedDateTime, y::LaxZonedDateTime) = y == x
+Base.:(==)(x::ZonedDateTime, y::LaxZonedDateTime) = y == x
 
 # Note: `hash` and `isequal` assume that the "zone" of a ZonedDateTime is not being set
 # incorrectly.
 
-function isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
+function Base.isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
     if isvalid(x) && isvalid(y)
         return isequal(utc(x), utc(y))
     else
@@ -120,15 +116,15 @@ function isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
     end
 end
 
-function isequal(x::LaxZonedDateTime, y::ZonedDateTime)
+function Base.isequal(x::LaxZonedDateTime, y::ZonedDateTime)
     isvalid(x) ? isequal(utc(x), utc(y)) : false
 end
 
-isequal(x::ZonedDateTime, y::LaxZonedDateTime) = isequal(y, x)
+Base.isequal(x::ZonedDateTime, y::LaxZonedDateTime) = isequal(y, x)
 
 # Valid LaxZonedDateTimes should hash to the same value as the equivalent ZonedDateTime
 # All invalid or unrepresentable LaxZonedDateTimes should always hash to a different value.
-function hash(lzdt::LaxZonedDateTime, h::UInt)
+function Base.hash(lzdt::LaxZonedDateTime, h::UInt)
     if isvalid(lzdt)
         h = hash(:utc_instant, h)
         h = hash(utc(lzdt), h)
@@ -146,25 +142,17 @@ include("conversions.jl")
 include("rounding.jl")
 include("ranges.jl")
 
-function (-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
+function Base.:(-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     R = Nullable{Millisecond}
     return (isvalid(x) && isvalid(y)) ? R(utc(x) - utc(y)) : R()
 end
-function (-)(x::LaxZonedDateTime, y::ZonedDateTime)
+function Base.:(-)(x::LaxZonedDateTime, y::ZonedDateTime)
     R = Nullable{Millisecond}
     return isvalid(x) ? R(utc(x) - utc(y)) : R()
 end
-(-)(x::ZonedDateTime, y::LaxZonedDateTime) = y - x
-#=
-function broadcast(::typeof(-), x::AbstractArray{LaxZonedDateTime}, y::ZonedDateTime)
-    return x .- LaxZonedDateTime(y)
-end
+Base.:(-)(x::ZonedDateTime, y::LaxZonedDateTime) = y - x
 
-function broadcast(::typeof(-), x::AbstractArray{ZonedDateTime}, y::LaxZonedDateTime)
-    return x .- ZonedDateTime(utc(y), timezone(y); from_utc=true)
-end
-=#
-function (+)(lzdt::LaxZonedDateTime, p::DatePeriod)
+function Base.:(+)(lzdt::LaxZonedDateTime, p::DatePeriod)
     !isrepresentable(lzdt) && (return lzdt)
     isa(lzdt.timezone, FixedTimeZone) && (return LaxZonedDateTime(ZonedDateTime(lzdt) + p))
 
@@ -182,7 +170,7 @@ function (+)(lzdt::LaxZonedDateTime, p::DatePeriod)
     end
 end
 
-function (+)(lzdt::LaxZonedDateTime, p::TimePeriod)
+function Base.:(+)(lzdt::LaxZonedDateTime, p::TimePeriod)
     !isrepresentable(lzdt) && (return lzdt)
     isa(lzdt.timezone, FixedTimeZone) && (return LaxZonedDateTime(ZonedDateTime(lzdt) + p))
     isa(lzdt.zone, InvalidTimeZone) && (return LaxZonedDateTime())
@@ -192,7 +180,7 @@ function (+)(lzdt::LaxZonedDateTime, p::TimePeriod)
     return LaxZonedDateTime(first(possible))
 end
 
-function (-)(lzdt::LaxZonedDateTime, p::Period)
+function Base.:(-)(lzdt::LaxZonedDateTime, p::Period)
     return lzdt + (-p)
 end
 
@@ -200,15 +188,15 @@ end
 # subtracting one LZDT from another returns a Nullable, and StepRange constructor code makes
 # use of the result in a further subtraction. This prevents us from having to rewrite all of
 # the range code.)
-function (-)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
+function Base.:(-)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
     return isnull(p) ? LaxZonedDateTime() : lzdt - get(p)
 end
 
-function (+)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
+function Base.:(+)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
     return isnull(p) ? LaxZonedDateTime() : lzdt + get(p)
 end
 
-function show(io::IO, lzdt::LaxZonedDateTime)
+function Base.show(io::IO, lzdt::LaxZonedDateTime)
     if isrepresentable(lzdt)
         print(io, localtime(lzdt))
 
@@ -241,9 +229,9 @@ function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
     end
 end
 
-(<=)(a::LaxZonedDateTime, b::LaxZonedDateTime) = !(a > b)
+Base.:(<=)(a::LaxZonedDateTime, b::LaxZonedDateTime) = !(a > b)
 
-function ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:throw)
+function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:throw)
     if ambiguous == :invalid
         Base.depwarn(
             "Use of `ambiguous=:invalid` is deprecated, use `ambiguous=:throw` instead",
