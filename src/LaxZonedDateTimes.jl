@@ -6,7 +6,6 @@ module LaxZonedDateTimes
 
 using Dates: Dates, AbstractDateTime, DatePeriod, TimePeriod, DateTime, Millisecond
 using Intervals
-using Nullables
 using TimeZones
 using TimeZones: UTC, Local, interpret, localtime, utc, timezone
 
@@ -143,13 +142,21 @@ include("rounding.jl")
 include("ranges.jl")
 
 function Base.:(-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
-    R = Nullable{Millisecond}
-    return (isvalid(x) && isvalid(y)) ? R(utc(x) - utc(y)) : R()
+    if isvalid(x) && isvalid(y)
+        utc(x) - utc(y)
+    else
+        nothing
+    end
 end
+
 function Base.:(-)(x::LaxZonedDateTime, y::ZonedDateTime)
-    R = Nullable{Millisecond}
-    return isvalid(x) ? R(utc(x) - utc(y)) : R()
+    if isvalid(x)
+        utc(x) - utc(y)
+    else
+        nothing
+    end
 end
+
 Base.:(-)(x::ZonedDateTime, y::LaxZonedDateTime) = y - x
 
 function Base.:(+)(lzdt::LaxZonedDateTime, p::DatePeriod)
@@ -182,18 +189,6 @@ end
 
 function Base.:(-)(lzdt::LaxZonedDateTime, p::Period)
     return lzdt + (-p)
-end
-
-# Allow a Nullable{Period} to be subtracted from an LZDT. (This is necessary because
-# subtracting one LZDT from another returns a Nullable, and StepRange constructor code makes
-# use of the result in a further subtraction. This prevents us from having to rewrite all of
-# the range code.)
-function Base.:(-)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
-    return isnull(p) ? LaxZonedDateTime() : lzdt - get(p)
-end
-
-function Base.:(+)(lzdt::LaxZonedDateTime, p::Nullable{<:Period})
-    return isnull(p) ? LaxZonedDateTime() : lzdt + get(p)
 end
 
 function Base.show(io::IO, lzdt::LaxZonedDateTime)
