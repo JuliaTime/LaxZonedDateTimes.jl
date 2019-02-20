@@ -1,11 +1,9 @@
-using Compat: nameof
+using Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond, DatePeriod
 using LaxZonedDateTimes
-using Compat.Test
+using LaxZonedDateTimes: NonExistent, isrepresentable
 using TimeZones
 using TimeZones: Transition, timezone, utc
-using Compat.Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond, DatePeriod
-using LaxZonedDateTimes: NonExistent, isrepresentable
-using Nullables
+using Test
 
 const winnipeg = TimeZone("America/Winnipeg")
 
@@ -127,10 +125,10 @@ const winnipeg = TimeZone("America/Winnipeg")
     @test !isnonexistent(amb_last)
     @test isnonexistent(non_existent)
 
-    @test get(amb_last - amb_first) == Hour(1)
-    @test isnull(amb - amb_first)
-    @test isnull(non_existent - amb_first)
-    @test isnull(null - amb_first)
+    @test amb_last - amb_first == Hour(1)
+    @test amb - amb_first === nothing
+    @test non_existent - amb_first === nothing
+    @test null - amb_first === nothing
 
 
     @testset "compare" begin
