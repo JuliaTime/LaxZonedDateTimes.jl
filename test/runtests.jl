@@ -1,9 +1,9 @@
-using Dates: Year, Month, Week, Day, Hour, Minute, Second, Millisecond, DatePeriod
+using Dates: DatePeriod, Day, Hour, Millisecond, Minute, Month, Second, Week, Year
 using LaxZonedDateTimes
-using LaxZonedDateTimes: NonExistent, isrepresentable
-using TimeZones
-using TimeZones: Transition, timezone, utc
+using LaxZonedDateTimes: isrepresentable, NonExistent
 using Test
+using TimeZones
+using TimeZones: timezone, Transition, utc
 
 const winnipeg = TimeZone("America/Winnipeg")
 

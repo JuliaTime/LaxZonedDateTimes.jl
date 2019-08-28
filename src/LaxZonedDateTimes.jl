@@ -1,15 +1,14 @@
-__precompile__()
-
 module LaxZonedDateTimes
 
 # Prototype of a new type that is a more context aware Nullable{ZonedDateTime}
 
-using Dates: Dates, AbstractDateTime, DatePeriod, TimePeriod, DateTime, Millisecond
+using Dates: AbstractDateTime, DatePeriod, DateTime, Dates, Millisecond, Period, TimePeriod
 using Intervals
 using TimeZones
-using TimeZones: UTC, Local, interpret, localtime, utc, timezone
+using TimeZones: interpret, Local, localtime, timezone, utc, UTC
 
-export LaxZonedDateTime, ZDT,
+export 
+    LaxZonedDateTime, ZDT,
     # accessors.jl
     isvalid, isinvalid, isambiguous, isnonexistent,
     hour, minute, second, millisecond
@@ -135,12 +134,6 @@ function Base.hash(lzdt::LaxZonedDateTime, h::UInt)
     return h
 end
 
-
-include("accessors.jl")
-include("conversions.jl")
-include("rounding.jl")
-include("ranges.jl")
-
 function Base.:(-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     if isvalid(x) && isvalid(y)
         utc(x) - utc(y)
@@ -256,5 +249,10 @@ function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:thro
 end
 
 const ZDT = Union{ZonedDateTime, LaxZonedDateTime}
+
+include("accessors.jl")
+include("conversions.jl")
+include("rounding.jl")
+include("ranges.jl")
 
 end
