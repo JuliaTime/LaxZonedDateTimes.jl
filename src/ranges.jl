@@ -1,10 +1,9 @@
-using Dates: Millisecond, guess, len
 using Base: steprange_last, steprange_last_empty
+using Dates: guess, len, Millisecond
 
 function Base.:(:)(start::LaxZonedDateTime, stop::LaxZonedDateTime)
     return StepRange(start, Millisecond(1), stop)
 end
-
 
 """
     guess(start::LaxZonedDateTime, finish::LaxZonedDateTime, step) -> Integer
