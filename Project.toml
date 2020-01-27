@@ -1,7 +1,7 @@
 name = "LaxZonedDateTimes"
 uuid = "e4c54217-8d3e-5504-a69c-0db1bad43e12"
 authors = ["Invenia Technical Computing"]
-version = "1.0.2"
+version = "1.0.3"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
@@ -9,8 +9,8 @@ Intervals = "d8418881-c3e1-53bb-8760-2df7ec849ed5"
 TimeZones = "f269a46b-ccf7-5d73-abea-4c690281aa53"
 
 [compat]
-Intervals = "0.3.2, 0.4, 0.5"
-TimeZones = "0.8, 0.9, 0.10"
+Intervals = "0.3.2, 0.4, 0.5, 1"
+TimeZones = "0.8, 0.9, 0.10, 0.11"
 julia = "1"
 
 [extras]
