@@ -1,7 +1,7 @@
 name = "LaxZonedDateTimes"
 uuid = "e4c54217-8d3e-5504-a69c-0db1bad43e12"
 authors = ["Invenia Technical Computing"]
-version = "1.0.2"
+version = "1.0.3"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
