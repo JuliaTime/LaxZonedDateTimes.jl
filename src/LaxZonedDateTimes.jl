@@ -5,9 +5,9 @@ module LaxZonedDateTimes
 using Dates: AbstractDateTime, DatePeriod, DateTime, Dates, Millisecond, Period, TimePeriod
 using Intervals
 using TimeZones
-using TimeZones: interpret, Local, localtime, timezone, utc, UTC
+using TimeZones: Local, UTC, interpret, timezone
 
-export 
+export
     LaxZonedDateTime, ZDT,
     # accessors.jl
     isvalid, isinvalid, isambiguous, isnonexistent,
@@ -40,7 +40,7 @@ function LaxZonedDateTime()
 end
 
 function LaxZonedDateTime(zdt::ZonedDateTime)
-    LaxZonedDateTime(localtime(zdt), timezone(zdt), zdt.zone, true)
+    LaxZonedDateTime(DateTime(zdt, Local), timezone(zdt), zdt.zone, true)
 end
 
 function LaxZonedDateTime(dt::DateTime, tz::TimeZone, zone)
@@ -77,7 +77,7 @@ end
 
 function Base.:(==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     if isvalid(x) && isvalid(y)
-        return utc(x) == utc(y)
+        return DateTime(x, UTC) == DateTime(y, UTC)
     else
         return (
             x.representable == y.representable == true &&
@@ -90,7 +90,7 @@ end
 
 function Base.:(==)(x::LaxZonedDateTime, y::ZonedDateTime)
     if isvalid(x)
-        return utc(x) == utc(y)
+        return DateTime(x, UTC) == DateTime(y, UTC)
     else
         return false
     end
@@ -103,7 +103,7 @@ Base.:(==)(x::ZonedDateTime, y::LaxZonedDateTime) = y == x
 
 function Base.isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
     if isvalid(x) && isvalid(y)
-        return isequal(utc(x), utc(y))
+        return isequal(DateTime(x, UTC), DateTime(y, UTC))
     else
         return (
             isequal(x.local_datetime, y.local_datetime) &&
@@ -115,7 +115,7 @@ function Base.isequal(x::LaxZonedDateTime, y::LaxZonedDateTime)
 end
 
 function Base.isequal(x::LaxZonedDateTime, y::ZonedDateTime)
-    isvalid(x) ? isequal(utc(x), utc(y)) : false
+    isvalid(x) ? isequal(DateTime(x, UTC), DateTime(y, UTC)) : false
 end
 
 Base.isequal(x::ZonedDateTime, y::LaxZonedDateTime) = isequal(y, x)
@@ -125,7 +125,7 @@ Base.isequal(x::ZonedDateTime, y::LaxZonedDateTime) = isequal(y, x)
 function Base.hash(lzdt::LaxZonedDateTime, h::UInt)
     if isvalid(lzdt)
         h = hash(:utc_instant, h)
-        h = hash(utc(lzdt), h)
+        h = hash(DateTime(lzdt, UTC), h)
     else
         h = hash(:invalid_utc_instant, h)
         h = hash(lzdt.local_datetime, h)
@@ -136,7 +136,7 @@ end
 
 function Base.:(-)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     if isvalid(x) && isvalid(y)
-        utc(x) - utc(y)
+        DateTime(x, UTC) - DateTime(y, UTC)
     else
         nothing
     end
@@ -144,7 +144,7 @@ end
 
 function Base.:(-)(x::LaxZonedDateTime, y::ZonedDateTime)
     if isvalid(x)
-        utc(x) - utc(y)
+        DateTime(x, UTC) - DateTime(y, UTC)
     else
         nothing
     end
@@ -156,7 +156,7 @@ function Base.:(+)(lzdt::LaxZonedDateTime, p::DatePeriod)
     !isrepresentable(lzdt) && (return lzdt)
     isa(lzdt.timezone, FixedTimeZone) && (return LaxZonedDateTime(ZonedDateTime(lzdt) + p))
 
-    local_dt, tz = localtime(lzdt), timezone(lzdt)
+    local_dt, tz = DateTime(lzdt, Local), timezone(lzdt)
     local_dt = local_dt + p
     possible = interpret(local_dt, tz, Local)
 
@@ -175,7 +175,7 @@ function Base.:(+)(lzdt::LaxZonedDateTime, p::TimePeriod)
     isa(lzdt.timezone, FixedTimeZone) && (return LaxZonedDateTime(ZonedDateTime(lzdt) + p))
     isa(lzdt.zone, InvalidTimeZone) && (return LaxZonedDateTime())
 
-    utc_dt, tz = utc(lzdt), timezone(lzdt)
+    utc_dt, tz = DateTime(lzdt, UTC), timezone(lzdt)
     possible = interpret(utc_dt + p, tz, UTC)
     return LaxZonedDateTime(first(possible))
 end
@@ -186,7 +186,7 @@ end
 
 function Base.show(io::IO, lzdt::LaxZonedDateTime)
     if isrepresentable(lzdt)
-        print(io, localtime(lzdt))
+        print(io, DateTime(lzdt, Local))
 
         if isa(lzdt.zone, NonExistent)
             print(io, "-DNE")
@@ -211,9 +211,9 @@ function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
 
     # Need to compare using UTC when the zones are fixed and don't have the same offset.
     if a.zone != b.zone && isa(a.zone, FixedTimeZone) && isa(b.zone, FixedTimeZone)
-        return isless(utc(a), utc(b))
+        return isless(DateTime(a, UTC), DateTime(b, UTC))
     else
-        return isless(localtime(a), localtime(b))
+        return isless(DateTime(a, Local), DateTime(b, Local))
     end
 end
 
@@ -229,7 +229,7 @@ function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:thro
         return ZonedDateTime(utc_dt, timezone(lzdt); from_utc=true)
     end
 
-    local_dt, tz = localtime(lzdt), timezone(lzdt)
+    local_dt, tz = DateTime(lzdt, Local), timezone(lzdt)
     possible = interpret(local_dt, tz, Local)
 
     num = length(possible)
@@ -254,5 +254,6 @@ include("accessors.jl")
 include("conversions.jl")
 include("rounding.jl")
 include("ranges.jl")
+include("deprecated.jl")
 
 end

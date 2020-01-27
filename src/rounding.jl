@@ -1,14 +1,14 @@
 using Dates: Period, DatePeriod, TimePeriod, floorceil
 
 function Base.floor(lzdt::LaxZonedDateTime, p::DatePeriod)
-    return LaxZonedDateTime(floor(localtime(lzdt), p), timezone(lzdt))
+    return LaxZonedDateTime(floor(DateTime(lzdt, Local), p), timezone(lzdt))
 end
 
 function Base.floor(lzdt::LaxZonedDateTime, p::TimePeriod)
     # Rounding non-representable dates doesn't work.
     !isrepresentable(lzdt) && (return LaxZonedDateTime())
 
-    local_dt = localtime(lzdt)
+    local_dt = DateTime(lzdt, Local)
     local_dt_floored = floor(local_dt, p)
 
     if local_dt == local_dt_floored
@@ -23,7 +23,7 @@ function Base.floor(lzdt::LaxZonedDateTime, p::TimePeriod)
 end
 
 function Base.ceil(lzdt::LaxZonedDateTime, p::DatePeriod)
-    return LaxZonedDateTime(ceil(localtime(lzdt), p), timezone(lzdt))
+    return LaxZonedDateTime(ceil(DateTime(lzdt, Local), p), timezone(lzdt))
 end
 
 # TODO: Additional performance gains can be made for round
@@ -34,8 +34,8 @@ function Base.round(lzdt::LaxZonedDateTime, p::DatePeriod, r::RoundingMode{:Near
     if f == c
         f
     elseif isvalid(f) && isvalid(c)
-        local_dt = localtime(lzdt)
-        local_dt - localtime(f) < localtime(c) - local_dt ? f : c
+        local_dt = DateTime(lzdt, Local)
+        local_dt - DateTime(f, Local) < DateTime(c, Local) - local_dt ? f : c
     else
         LaxZonedDateTime()
     end
@@ -47,8 +47,8 @@ function Base.round(lzdt::LaxZonedDateTime, p::TimePeriod, r::RoundingMode{:Near
     if f == c
         f
     elseif isvalid(f) && isvalid(c)
-        utc_dt = utc(lzdt)
-        utc_dt - utc(f) < utc(c) - utc_dt ? f : c
+        utc_dt = DateTime(lzdt, UTC)
+        utc_dt - DateTime(f, UTC) < DateTime(c, UTC) - utc_dt ? f : c
     else
         LaxZonedDateTime()
     end
