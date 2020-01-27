@@ -13,8 +13,11 @@ function allows `StepRange`s to be defined for `LaxZonedDateTime`s. (For non-emp
 `StepRange`s, `guess` will ideally return one less than the number of elements.)
 """
 function Dates.guess(start::LaxZonedDateTime, finish::LaxZonedDateTime, step)
-    isvalid(start) && isvalid(finish) && return guess(utc(start), utc(finish), step)
-    return 0    # Can't easily guess. It will be calculated with len instead.
+    if isvalid(start) && isvalid(finish)
+        return guess(DateTime(start, UTC), DateTime(finish, UTC), step)
+    else
+        return 0    # Can't easily guess. It will be calculated with len instead.
+    end
 end
 
 function Dates.len(start::LaxZonedDateTime, finish::LaxZonedDateTime, step)

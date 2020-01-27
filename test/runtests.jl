@@ -1,9 +1,10 @@
+using Dates: DateTime
 using Dates: DatePeriod, Day, Hour, Millisecond, Minute, Month, Second, Week, Year
 using LaxZonedDateTimes
 using LaxZonedDateTimes: isrepresentable, NonExistent
 using Test
 using TimeZones
-using TimeZones: timezone, Transition, utc
+using TimeZones: Transition, timezone
 
 const winnipeg = TimeZone("America/Winnipeg")
 
@@ -85,8 +86,8 @@ const winnipeg = TimeZone("America/Winnipeg")
 
     @test month(amb) == 11
 
-    @test_throws Exception localtime(null)
-    @test_throws Exception utc(null)
+    @test_throws Exception DateTime(null, Local)
+    @test_throws Exception DateTime(null, UTC)
     @test_throws Exception hour(null)
 
 
@@ -205,7 +206,7 @@ const winnipeg = TimeZone("America/Winnipeg")
         atz_lzdt = astimezone(lzdt, warsaw)
         @test atz_zdt == atz_lzdt
         @test timezone(atz_zdt) == timezone(atz_lzdt)
-        @test utc(lzdt) == utc(atz_lzdt)
+        @test DateTime(lzdt, UTC) == DateTime(atz_lzdt, UTC)
 
         atz_dne = astimezone(dne, warsaw)
         atz_amb = astimezone(amb, warsaw)
