@@ -75,6 +75,13 @@ function Intervals.Interval{T}() where T <: LaxZonedDateTime
     )
 end
 
+# Allows for the creation of valid `AnchoredInterval`s without having to compute the
+# non-anchor endpoint.
+# Note: `Intervals._isfinite` was introduced in Intervals 1.3
+if isdefined(Intervals, :_isfinite)
+    Intervals._isfinite(x::LaxZonedDateTime) = isvalid(x)
+end
+
 function Base.:(==)(x::LaxZonedDateTime, y::LaxZonedDateTime)
     if isvalid(x) && isvalid(y)
         return DateTime(x, UTC) == DateTime(y, UTC)
