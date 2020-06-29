@@ -2,13 +2,15 @@ using Intervals
 
 @testset "AnchoredIntervals" begin
     @testset "ranges" begin
+        HE = HourEnding{LaxZonedDateTime, Open, Closed}
+
         # basic
         s = LaxZonedDateTime(DateTime(2016, 3, 14, 3, 45), winnipeg)
         f = LaxZonedDateTime(DateTime(2016, 3, 18, 3, 45), winnipeg)
         @test HourEnding(s):HourEnding(f) == HourEnding(s):Hour(1):HourEnding(f)
 
         r = HourEnding(s):Day(2):HourEnding(f)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 3, 14, 3, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 3, 16, 3, 45), winnipeg)),
@@ -16,7 +18,7 @@ using Intervals
         ]
 
         r = HourEnding(f):Day(-2):HourEnding(s)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 3, 18, 3, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 3, 16, 3, 45), winnipeg)),
@@ -28,7 +30,7 @@ using Intervals
         f = LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)
 
         r = HourEnding(s):Day(2):HourEnding(f)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
@@ -36,7 +38,7 @@ using Intervals
         ]
 
         r = HourEnding(f):Day(-2):HourEnding(s)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
@@ -48,7 +50,7 @@ using Intervals
         f = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
 
         r = HourEnding(s):Day(2):HourEnding(f)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 2, 1, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)),
@@ -56,7 +58,7 @@ using Intervals
         ]
 
         r = HourEnding(f):Day(-2):HourEnding(s)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)),
@@ -67,7 +69,7 @@ using Intervals
         f = LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
 
         r = HourEnding(s):Day(2):HourEnding(f)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)),
@@ -75,7 +77,7 @@ using Intervals
         ]
 
         r = HourEnding(f):Day(-2):HourEnding(s)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)),
