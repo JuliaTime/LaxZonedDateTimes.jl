@@ -84,7 +84,7 @@ function Base.steprange_last(
     return AnchoredInterval{P}(steprange_last(anchor(start), step, anchor(stop)))
 end
 
-function Base.isempty(r::StepRange{AnchoredInterval{LaxZonedDateTime}})
+function Base.isempty(r::StepRange{A}) where A <: AnchoredInterval{P, LaxZonedDateTime} where P
     a_start, a_stop, step = anchor(r.start), anchor(r.stop), r.step
     return !(isrepresentable(a_start) && isrepresentable(a_stop)) || (
         (a_start != a_stop) & ((step > zero(step)) != (a_stop > a_start))

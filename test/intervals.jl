@@ -82,6 +82,24 @@ using Intervals
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
         ]
     end
+    @testset "isempty" begin
+        null = LaxZonedDateTime()
+        start = LaxZonedDateTime(DateTime(2016, 3, 13, 3, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 3, 13, 8, 45), winnipeg)
+
+        @test isempty(HourEnding(null):Hour(1):HourEnding(null))
+        @test isempty(HourEnding(null):Hour(1):HourEnding(finish))
+        @test isempty(HourEnding(start):Hour(1):HourEnding(null))
+
+        @test isempty(HourEnding(null):Hour(-1):HourEnding(null))
+        @test isempty(HourEnding(null):Hour(-1):HourEnding(finish))
+        @test isempty(HourEnding(start):Hour(-1):HourEnding(null))
+
+        @test !isempty(HourEnding(start):Hour(1):HourEnding(finish))
+        @test isempty(HourEnding(start):Hour(-1):HourEnding(finish))
+        @test isempty(HourEnding(finish):Hour(1):HourEnding(start))
+        @test !isempty(HourEnding(finish):Hour(-1):HourEnding(start))
+    end
     @testset "intersect" begin
         a = Interval{Open,Closed}(
             LaxZonedDateTime(DateTime(2013, 2, 7), winnipeg),
