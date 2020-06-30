@@ -380,6 +380,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 13, 7, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 13, 8, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             finish = LaxZonedDateTime(DateTime(2016, 3, 18, 3, 45), winnipeg)
             r = start:Day(2):finish
@@ -389,6 +390,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 15, 3, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 17, 3, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             # Negative step
             start = LaxZonedDateTime(DateTime(2016, 3, 13, 8, 45), winnipeg)
@@ -403,6 +405,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 13, 4, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 13, 3, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 3, 18, 3, 45), winnipeg)
             r = start:Day(-2):finish
@@ -412,6 +415,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 16, 3, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 14, 3, 45), winnipeg)
             ]
+            @test !isempty(r)
         end
 
         @testset "step through transition" begin
@@ -427,6 +431,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 13, 4, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 13, 5, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             # step past DNE (hourly, backward)
             r = finish:Hour(-1):start
@@ -438,6 +443,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 13, 1, 45), winnipeg),   # Skip DNE
                 LaxZonedDateTime(DateTime(2016, 3, 13, 0, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             # step past DNE (daily)
             start = LaxZonedDateTime(DateTime(2016, 3, 11, 2, 45), winnipeg)
@@ -449,6 +455,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg),   # Include DNE
                 LaxZonedDateTime(DateTime(2016, 3, 15, 2, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             # step past DNE (daily, backward)
             start = LaxZonedDateTime(DateTime(2016, 3, 15, 2, 45), winnipeg)
@@ -460,6 +467,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg),   # Include DNE
                 LaxZonedDateTime(DateTime(2016, 3, 11, 2, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             # step past AMB (hourly)
             start = LaxZonedDateTime(DateTime(2016, 11, 6, 0, 45), winnipeg)
@@ -475,6 +483,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 11, 6, 4, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 11, 6, 5, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             # step past AMB (hourly, backward)
             r = finish:Hour(-1):start
@@ -488,6 +497,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 1)),
                 LaxZonedDateTime(DateTime(2016, 11, 6, 0, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             # step past AMB (daily)
             start = LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)
@@ -499,6 +509,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg),   # Include AMB
                 LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             # step past AMB (daily, backward)
             start = LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)
@@ -510,6 +521,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg),   # Include AMB
                 LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)
             ]
+            @test !isempty(r)
         end
 
         @testset "start with unrepresentable" begin
@@ -519,18 +531,22 @@ const winnipeg = TimeZone("America/Winnipeg")
             r = start:Hour(1):finish
             @test isa(r, StepRange{LaxZonedDateTime, Hour})
             @test isempty(collect(r))
+            @test isempty(r)
 
             r = start:Hour(-1):finish
             @test isa(r, StepRange{LaxZonedDateTime, Hour})
             @test isempty(collect(r))
+            @test isempty(r)
 
             r = start:Day(2):finish
             @test isa(r, StepRange{LaxZonedDateTime, Day})
             @test isempty(collect(r))
+            @test isempty(r)
 
             r = start:Day(-2):finish
             @test isa(r, StepRange{LaxZonedDateTime, Day})
             @test isempty(collect(r))
+            @test isempty(r)
 
             # start is DNE
             start = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
@@ -538,12 +554,14 @@ const winnipeg = TimeZone("America/Winnipeg")
             r = start:Hour(1):finish
             @test isa(r, StepRange{LaxZonedDateTime, Hour})
             @test isempty(collect(r))
+            @test isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 3, 12, 21, 45), winnipeg)
             r = start:Hour(-1):finish
             @test isa(r, StepRange{LaxZonedDateTime, Hour})
             @test isempty(collect(r))
+            @test isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 3, 18, 2, 45), winnipeg)
@@ -554,6 +572,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 15, 2, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 17, 2, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 3, 8, 2, 45), winnipeg)
@@ -564,6 +583,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 11, 2, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 9, 2, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             # start is AMB
             start = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
@@ -571,12 +591,14 @@ const winnipeg = TimeZone("America/Winnipeg")
             r = start:Hour(1):finish
             @test isa(r, StepRange{LaxZonedDateTime, Hour})
             @test isempty(collect(r))
+            @test isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 11, 5, 20, 45), winnipeg)
             r = start:Hour(-1):finish
             @test isa(r, StepRange{LaxZonedDateTime, Hour})
             @test isempty(collect(r))
+            @test isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 11, 11, 1, 45), winnipeg)
@@ -587,6 +609,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
             ]
+            @test !isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 11, 1, 1, 45), winnipeg)
@@ -597,6 +620,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 11, 2, 1, 45), winnipeg)
             ]
+            @test !isempty(r)
         end
 
         @testset "finish with unrepresentable" begin
@@ -606,18 +630,22 @@ const winnipeg = TimeZone("America/Winnipeg")
             r = start:Hour(1):finish
             @test isa(r, StepRange{LaxZonedDateTime, Hour})
             @test isempty(collect(r))
+            @test isempty(r)
 
             r = start:Hour(-1):finish
             @test isa(r, StepRange{LaxZonedDateTime, Hour})
             @test isempty(collect(r))
+            @test isempty(r)
 
             r = start:Day(2):finish
             @test isa(r, StepRange{LaxZonedDateTime, Day})
             @test isempty(collect(r))
+            @test isempty(r)
 
             r = start:Day(-2):finish
             @test isa(r, StepRange{LaxZonedDateTime, Day})
             @test isempty(collect(r))
+            @test isempty(r)
 
             # finish is DNE
             start = LaxZonedDateTime(DateTime(2016, 3, 12, 21, 45), winnipeg)
@@ -631,6 +659,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 13, 0, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 13, 1, 45), winnipeg)    # Skip DNE
             ]
+            @test !isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 3, 13, 7, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
@@ -643,6 +672,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 13, 4, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 13, 3, 45), winnipeg)    # Skip DNE
             ]
+            @test !isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 3, 9, 2, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
@@ -653,6 +683,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 11, 2, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)    # Include DNE
             ]
+            @test !isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 3, 17, 2, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
@@ -663,6 +694,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 3, 15, 2, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)    # Include DNE
             ]
+            @test !isempty(r)
 
             # finish is AMB
             start = LaxZonedDateTime(DateTime(2016, 11, 5, 20, 45), winnipeg)
@@ -678,6 +710,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 1)),
                 LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 2))
             ]
+            @test !isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 11, 6, 6, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
@@ -692,6 +725,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 2)),
                 LaxZonedDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 1))
             ]
+            @test !isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 11, 2, 1, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
@@ -702,6 +736,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)    # Include AMB
             ]
+            @test !isempty(r)
 
             start = LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
             finish = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
@@ -712,6 +747,7 @@ const winnipeg = TimeZone("America/Winnipeg")
                 LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg),
                 LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)    # Include AMB
             ]
+            @test !isempty(r)
         end
     end
 

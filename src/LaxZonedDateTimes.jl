@@ -68,10 +68,9 @@ end
 
 # We need to define the behaviour for constructing an empty Interval of LaxZonedDateTimes
 function Intervals.Interval{T}() where T <: LaxZonedDateTime
-    return Interval{T}(
+    return Interval{T,Open,Open}(
         T(DateTime(0), tz"UTC"),
         T(DateTime(0), tz"UTC"),
-        Inclusivity(false, false)
     )
 end
 

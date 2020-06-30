@@ -2,13 +2,15 @@ using Intervals
 
 @testset "AnchoredIntervals" begin
     @testset "ranges" begin
+        HE = HourEnding{LaxZonedDateTime, Open, Closed}
+
         # basic
         s = LaxZonedDateTime(DateTime(2016, 3, 14, 3, 45), winnipeg)
         f = LaxZonedDateTime(DateTime(2016, 3, 18, 3, 45), winnipeg)
         @test HourEnding(s):HourEnding(f) == HourEnding(s):Hour(1):HourEnding(f)
 
         r = HourEnding(s):Day(2):HourEnding(f)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 3, 14, 3, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 3, 16, 3, 45), winnipeg)),
@@ -16,7 +18,7 @@ using Intervals
         ]
 
         r = HourEnding(f):Day(-2):HourEnding(s)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 3, 18, 3, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 3, 16, 3, 45), winnipeg)),
@@ -28,7 +30,7 @@ using Intervals
         f = LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)
 
         r = HourEnding(s):Day(2):HourEnding(f)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
@@ -36,7 +38,7 @@ using Intervals
         ]
 
         r = HourEnding(f):Day(-2):HourEnding(s)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
@@ -48,7 +50,7 @@ using Intervals
         f = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
 
         r = HourEnding(s):Day(2):HourEnding(f)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 2, 1, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)),
@@ -56,7 +58,7 @@ using Intervals
         ]
 
         r = HourEnding(f):Day(-2):HourEnding(s)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 4, 1, 45), winnipeg)),
@@ -67,7 +69,7 @@ using Intervals
         f = LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)
 
         r = HourEnding(s):Day(2):HourEnding(f)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)),
@@ -75,46 +77,56 @@ using Intervals
         ]
 
         r = HourEnding(f):Day(-2):HourEnding(s)
-        @test isa(r, StepRange{HourEnding{LaxZonedDateTime}, Day})
+        @test r isa StepRange{HE, Day}
         @test collect(r) == [
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 10, 1, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 8, 1, 45), winnipeg)),
             HourEnding(LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)),   # AMB
         ]
     end
+    @testset "isempty" begin
+        null = LaxZonedDateTime()
+        start = LaxZonedDateTime(DateTime(2016, 3, 13, 3, 45), winnipeg)
+        finish = LaxZonedDateTime(DateTime(2016, 3, 13, 8, 45), winnipeg)
+
+        @test isempty(HourEnding(null):Hour(1):HourEnding(null))
+        @test isempty(HourEnding(null):Hour(1):HourEnding(finish))
+        @test isempty(HourEnding(start):Hour(1):HourEnding(null))
+
+        @test isempty(HourEnding(null):Hour(-1):HourEnding(null))
+        @test isempty(HourEnding(null):Hour(-1):HourEnding(finish))
+        @test isempty(HourEnding(start):Hour(-1):HourEnding(null))
+
+        @test !isempty(HourEnding(start):Hour(1):HourEnding(finish))
+        @test isempty(HourEnding(start):Hour(-1):HourEnding(finish))
+        @test isempty(HourEnding(finish):Hour(1):HourEnding(start))
+        @test !isempty(HourEnding(finish):Hour(-1):HourEnding(start))
+    end
     @testset "intersect" begin
-        a = Interval(
+        a = Interval{Open,Closed}(
             LaxZonedDateTime(DateTime(2013, 2, 7), winnipeg),
             LaxZonedDateTime(DateTime(2013, 2, 9, 1), winnipeg),
-            false,
-            true
         )
 
-        b = Interval(
+        b = Interval{Open,Closed}(
             LaxZonedDateTime(DateTime(2013, 2, 12), winnipeg),
             LaxZonedDateTime(DateTime(2013, 2, 14, 4), winnipeg),
-            false,
-            true
         )
 
         zero_lzdt = LaxZonedDateTime(DateTime(0), tz"UTC")
-        @test intersect(a, b) == Interval(zero_lzdt, zero_lzdt, false, false)
+        @test intersect(a, b) == Interval{Open,Open}(zero_lzdt, zero_lzdt)
     end
     @testset "astimezone" begin
         @testset "Intervals" begin
             warsaw = tz"Europe/Warsaw"
             dt = DateTime(2016, 11, 10, 1, 45)
-            zdt = Interval(
+            zdt = Interval{Open,Closed}(
                 ZonedDateTime(dt - Hour(1), winnipeg),
                 ZonedDateTime(dt, winnipeg),
-                false,
-                true
             )
-            lzdt = Interval(
+            lzdt = Interval{Open,Closed}(
                 LaxZonedDateTime(first(zdt)),
                 LaxZonedDateTime(last(zdt)),
-                false,
-                true
             )
 
             atz_zdt = astimezone(zdt, warsaw)

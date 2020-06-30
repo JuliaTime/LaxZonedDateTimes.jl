@@ -60,31 +60,19 @@ end
 # Ideally this would go in Intervals.jl, but it goes here because it doesn't make sense to
 # reference a private package (this one) in a public package (Intervals.jl)
 
-function Dates.guess(
-    start::AnchoredInterval{P, LaxZonedDateTime},
-    finish::AnchoredInterval{P, LaxZonedDateTime},
-    step
-) where P
+function Dates.guess(start::A, finish::A, step) where A <: AnchoredInterval{P, LaxZonedDateTime} where P
     return guess(anchor(start), anchor(finish), step)
 end
 
-function Dates.len(
-    start::AnchoredInterval{P, LaxZonedDateTime},
-    finish::AnchoredInterval{P, LaxZonedDateTime},
-    step
-) where P
+function Dates.len(start::A, finish::A, step) where A <: AnchoredInterval{P, LaxZonedDateTime} where P
     return len(anchor(start), anchor(finish), step)
 end
 
-function Base.steprange_last(
-    start::AnchoredInterval{P, LaxZonedDateTime},
-    step,
-    stop::AnchoredInterval{P, LaxZonedDateTime},
-) where P
+function Base.steprange_last(start::A, step, stop::A) where A <: AnchoredInterval{P, LaxZonedDateTime} where P
     return AnchoredInterval{P}(steprange_last(anchor(start), step, anchor(stop)))
 end
 
-function Base.isempty(r::StepRange{AnchoredInterval{LaxZonedDateTime}})
+function Base.isempty(r::StepRange{A}) where A <: AnchoredInterval{P, LaxZonedDateTime} where P
     a_start, a_stop, step = anchor(r.start), anchor(r.stop), r.step
     return !(isrepresentable(a_start) && isrepresentable(a_stop)) || (
         (a_start != a_stop) & ((step > zero(step)) != (a_stop > a_start))
