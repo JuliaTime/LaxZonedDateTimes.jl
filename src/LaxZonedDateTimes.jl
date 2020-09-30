@@ -225,7 +225,19 @@ end
 
 Base.:(<=)(a::LaxZonedDateTime, b::LaxZonedDateTime) = !(a > b)
 
-function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:throw)
+"""
+    ZonedDateTime(lzdt::LaxZonedDateTime, resolve_by::Symbol=:throw) -> ZonedDateTime
+
+Convert a `LaxZonedDateTime` to a [`ZonedDateTime`](@ref). If an [`Ambiguous`](@ref) or 
+[`NonExistent`](@ref) time is given the conversion will throw the appropriate error.
+
+To force conversion, the `resolve_by` positional argument should be either `:first` or `:last`. 
+For [`Ambiguous`](@ref) times, this will return the same `DateTime` but resolved in the timezone
+just before (first) or just after (last) the transition. For [`NonExistent`](@ref) times, this 
+will return the closest `DateTime` instant in the timezone which is just before (first) or just 
+after (last) the transition gap.
+"""
+function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, resolve_by::Symbol=:throw)
     if !isrepresentable(lzdt)
         throw(ArgumentError("Unable to determine UTC datetime from an unrepresentable LaxZonedDateTime"))
     end
@@ -234,23 +246,31 @@ function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, ambiguous::Symbol=:thro
         utc_dt = lzdt.local_datetime - lzdt.zone.offset
         return ZonedDateTime(utc_dt, timezone(lzdt); from_utc=true)
     end
-
+    
     local_dt, tz = DateTime(lzdt, Local), timezone(lzdt)
-    possible = interpret(local_dt, tz, Local)
+    
+    if isambiguous(lzdt)
+        possible = interpret(local_dt, tz, Local)
 
-    num = length(possible)
-    if num == 1
-        return first(possible)
-    elseif num == 0
-        throw(NonExistentTimeError(local_dt, tz))
-    else
-        if ambiguous == :first
+        if resolve_by == :first
             return first(possible)
-        elseif ambiguous == :last
+        elseif resolve_by == :last
             return last(possible)
         else
             throw(AmbiguousTimeError(local_dt, tz))
         end
+    elseif isnonexistent(lzdt)
+        zdts = TimeZones.shift_gap(local_dt, tz)
+
+        if resolve_by == :first
+            return first(zdts)
+        elseif resolve_by == :last
+            return last(zdts)
+        else
+            throw(NonExistentTimeError(local_dt, tz))
+        end
+    else
+        return ZonedDateTime(local_dt, tz)
     end
 end
 
