@@ -145,39 +145,47 @@ end
     end
 end
 
-   @testset "convert to ZonedDateTime" begin
+@testset "convert to ZonedDateTime" begin
 
-        @testset "basic" begin
-            lzdt = LaxZonedDateTime(DateTime(2020, 1, 1, 9, 30), winnipeg)
-            expected =  ZonedDateTime(DateTime(2020, 1, 1, 9, 30), winnipeg)
-            @test ZonedDateTime(lzdt) == expected
-        end
-
-        @testset "Ambiguous" begin
-            # Occurs during Fall DST - it's the same hour just in two different timezones
-            amb = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
-
-            zdt = ZonedDateTime(amb, :first)
-            exp_first = ZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg, 1)
-            @test zdt == exp_first
-
-            zdt = ZonedDateTime(amb, :last)
-            exp_last = ZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg, 2)
-            @test zdt == exp_last
-
-            @test_throws AmbiguousTimeError ZonedDateTime(amb, :throw)
-            @test_throws AmbiguousTimeError ZonedDateTime(amb)
-
-        end
-
-        @testset "NonExistent" begin
-            # Occurs during Spring DST
-            dne = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
-
-            @test_throws NonExistentTimeError ZonedDateTime(dne, :first)
-            @test_throws NonExistentTimeError ZonedDateTime(dne, :last)
-            @test_throws NonExistentTimeError ZonedDateTime(dne, :throw)
-            @test_throws NonExistentTimeError ZonedDateTime(dne)
-        end
-        
+    @testset "basic" begin
+        lzdt = LaxZonedDateTime(DateTime(2020, 1, 1, 9, 30), winnipeg)
+        expected =  ZonedDateTime(DateTime(2020, 1, 1, 9, 30), winnipeg)
+        @test ZonedDateTime(lzdt) == expected
     end
+
+    @testset "Ambiguous" begin
+        # Occurs during Fall DST - it's the same hour just in two different timezones
+        amb = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
+
+        zdt = ZonedDateTime(amb, :first)
+        exp_first = ZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg, 1)
+        @test zdt == exp_first
+
+        zdt = ZonedDateTime(amb, :last)
+        exp_last = ZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg, 2)
+        @test zdt == exp_last
+
+        @test_throws AmbiguousTimeError ZonedDateTime(amb, :throw)
+        @test_throws AmbiguousTimeError ZonedDateTime(amb)
+
+    end
+
+    @testset "NonExistent" begin
+        # Occurs during Spring DST
+        dne = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
+
+        # :first gets the time just before the transition occurred
+        zdt = ZonedDateTime(dne, :first)
+        exp_first = ZonedDateTime(2016, 3, 13, 1, 59, 59, 999, winnipeg)
+        @test zdt == exp_first
+
+        # :last gets the hour after the transition occurred
+        zdt = ZonedDateTime(dne, :last)
+        exp_last = ZonedDateTime(2016, 3, 13, 3, 0, winnipeg)
+        @test zdt == exp_last
+
+        @test_throws NonExistentTimeError ZonedDateTime(dne, :throw)
+        @test_throws NonExistentTimeError ZonedDateTime(dne)
+    end
+    
+end
