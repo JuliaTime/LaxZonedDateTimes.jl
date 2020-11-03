@@ -40,7 +40,7 @@ function LaxZonedDateTime()
 end
 
 function LaxZonedDateTime(zdt::ZonedDateTime)
-    LaxZonedDateTime(DateTime(zdt, Local), timezone(zdt), zdt.zone, true)
+    LaxZonedDateTime(DateTime(zdt), timezone(zdt), zdt.zone, true)
 end
 
 function LaxZonedDateTime(dt::DateTime, tz::TimeZone, zone)
@@ -162,7 +162,7 @@ function Base.:(+)(lzdt::LaxZonedDateTime, p::DatePeriod)
     !isrepresentable(lzdt) && (return lzdt)
     isa(lzdt.timezone, FixedTimeZone) && (return LaxZonedDateTime(ZonedDateTime(lzdt) + p))
 
-    local_dt, tz = DateTime(lzdt, Local), timezone(lzdt)
+    local_dt, tz = DateTime(lzdt), timezone(lzdt)
     local_dt = local_dt + p
     possible = interpret(local_dt, tz, Local)
 
@@ -192,7 +192,7 @@ end
 
 function Base.show(io::IO, lzdt::LaxZonedDateTime)
     if isrepresentable(lzdt)
-        print(io, DateTime(lzdt, Local))
+        print(io, DateTime(lzdt))
 
         if isa(lzdt.zone, NonExistent)
             print(io, "-DNE")
@@ -219,7 +219,7 @@ function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
     if a.zone != b.zone && isa(a.zone, FixedTimeZone) && isa(b.zone, FixedTimeZone)
         return isless(DateTime(a, UTC), DateTime(b, UTC))
     else
-        return isless(DateTime(a, Local), DateTime(b, Local))
+        return isless(DateTime(a), DateTime(b))
     end
 end
 
@@ -228,13 +228,13 @@ Base.:(<=)(a::LaxZonedDateTime, b::LaxZonedDateTime) = !(a > b)
 """
     ZonedDateTime(lzdt::LaxZonedDateTime, resolve_by::Symbol=:throw) -> ZonedDateTime
 
-Convert a `LaxZonedDateTime` to a [`ZonedDateTime`](@ref). If an [`Ambiguous`](@ref) or 
+Convert a `LaxZonedDateTime` to a [`ZonedDateTime`](@ref). If an [`Ambiguous`](@ref) or
 [`NonExistent`](@ref) time is given the conversion will throw the appropriate error.
 
-To force conversion, the `resolve_by` positional argument should be either `:first` or `:last`. 
+To force conversion, the `resolve_by` positional argument should be either `:first` or `:last`.
 For [`Ambiguous`](@ref) times, this will return the same `DateTime` but resolved in the timezone
-just before (first) or just after (last) the transition. For [`NonExistent`](@ref) times, this 
-will return the closest `DateTime` instant in the timezone which is just before (first) or just 
+just before (first) or just after (last) the transition. For [`NonExistent`](@ref) times, this
+will return the closest `DateTime` instant in the timezone which is just before (first) or just
 after (last) the transition gap.
 """
 function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, resolve_by::Symbol=:throw)
@@ -246,9 +246,9 @@ function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, resolve_by::Symbol=:thr
         utc_dt = lzdt.local_datetime - lzdt.zone.offset
         return ZonedDateTime(utc_dt, timezone(lzdt); from_utc=true)
     end
-    
-    local_dt, tz = DateTime(lzdt, Local), timezone(lzdt)
-    
+
+    local_dt, tz = DateTime(lzdt), timezone(lzdt)
+
     if isambiguous(lzdt)
         possible = interpret(local_dt, tz, Local)
 

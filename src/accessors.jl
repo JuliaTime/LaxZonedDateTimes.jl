@@ -1,6 +1,6 @@
 using Dates: days, hour, minute, second, millisecond
 
-function Dates.DateTime(lzdt::LaxZonedDateTime, ::Type{Local})
+function Dates.DateTime(lzdt::LaxZonedDateTime)
     if isrepresentable(lzdt)
         return lzdt.local_datetime
     else
@@ -10,13 +10,11 @@ end
 
 Dates.DateTime(lzdt::LaxZonedDateTime, ::Type{UTC}) = DateTime(ZonedDateTime(lzdt), UTC)
 
-function Dates.Date(lzdt::LaxZonedDateTime, ::Type{T}) where T <: Union{Local, UTC}
-    return Date(DateTime(lzdt, T))
-end
+Dates.Date(lzdt::LaxZonedDateTime) = Date(DateTime(lzdt))
+Dates.Date(lzdt::LaxZonedDateTime, ::Type{UTC}) = Date(DateTime(lzdt, UTC))
 
-function Dates.Time(lzdt::LaxZonedDateTime, ::Type{T}) where T <: Union{Local, UTC}
-    return Time(DateTime(lzdt, T))
-end
+Dates.Time(lzdt::LaxZonedDateTime) = Time(DateTime(lzdt))
+Dates.Time(lzdt::LaxZonedDateTime, ::Type{UTC}) = Time(DateTime(lzdt, UTC))
 
 TimeZones.timezone(lzdt::LaxZonedDateTime) = lzdt.timezone
 
@@ -47,12 +45,12 @@ isinvalid(lzdt::LaxZonedDateTime) = isrepresentable(lzdt) && isa(lzdt.zone, Inva
 isambiguous(lzdt::LaxZonedDateTime) = isa(lzdt.zone, Ambiguous)
 isnonexistent(lzdt::LaxZonedDateTime) = isa(lzdt.zone, NonExistent)
 
-Dates.days(lzdt::LaxZonedDateTime) = days(DateTime(lzdt, Local))
+Dates.days(lzdt::LaxZonedDateTime) = days(DateTime(lzdt))
 
 for period in (:Hour, :Minute, :Second, :Millisecond)
     accessor = Symbol(lowercase(string(period)))
     @eval begin
-        Dates.$accessor(lzdt::LaxZonedDateTime) = $accessor(DateTime(lzdt, Local))
+        Dates.$accessor(lzdt::LaxZonedDateTime) = $accessor(DateTime(lzdt))
         Dates.$period(lzdt::LaxZonedDateTime) = $period($accessor(lzdt))
     end
 end
