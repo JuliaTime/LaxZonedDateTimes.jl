@@ -20,7 +20,7 @@
     @test month(amb) == 11
 
     null = LaxZonedDateTime()
-    @test_throws Exception DateTime(null, Local)
+    @test_throws Exception DateTime(null)
     @test_throws Exception DateTime(null, UTC)
     @test_throws Exception hour(null)
 
@@ -60,5 +60,5 @@
     @test non_existent - amb_first === nothing
     @test null - amb_first === nothing
 
-    
+
 end
