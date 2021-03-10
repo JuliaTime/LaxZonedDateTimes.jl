@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · LaxZonedDateTimes.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">LaxZonedDateTimes.jl</span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Examples"><span>Examples</span></a></li><li><a class="tocitem" href="#Ranges"><span>Ranges</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.ca/JuliaTime/LaxZonedDateTimes.jl/blob/master/docs/src/index.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="LaxZonedDateTimes"><a class="docs-heading-anchor" href="#LaxZonedDateTimes">LaxZonedDateTimes</a><a id="LaxZonedDateTimes-1"></a><a class="docs-heading-anchor-permalink" href="#LaxZonedDateTimes" title="Permalink"></a></h1><p><a href="https://juliatime.github.io/LaxZonedDateTimes.jl/stable/"><img src="https://img.shields.io/badge/docs-latest-blue.svg" alt="latest"/></a> <a href="https://juliatime.github.io/LaxZonedDateTimes.jl/stable/"><img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="dev"/></a> <a href="https://github.com/JuliaTime/LaxZonedDateTimes.jl/commits/master"><img src="https://github.com/JuliaTime/LaxZonedDateTimes.jl/workflows/CI/badge.svg" alt="build status"/></a></p><p>Provides <code>LaxZonedDateTime</code>, an alternative to TimeZones.jl&#39;s <code>ZonedDateTime</code> that does not raise exceptions when a time that is ambiguous or doesn&#39;t exist is encountered.</p><h2 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h2><pre><code class="language-julia">julia&gt; using LaxZonedDateTimes, TimeZones
+
+julia&gt; winnipeg = TimeZone(&quot;America/Winnipeg&quot;)
+America/Winnipeg (UTC-6/UTC-5)
+
+julia&gt; LaxZonedDateTime(DateTime(2016), winnipeg)
+2016-01-01T00:00:00-06:00
+
+julia&gt; LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
+2016-03-13T02:45:00-DNE
+
+julia&gt; LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
+2016-11-06T01:45:00-AMB</code></pre><p>One of the advantages of using <code>LaxZonedDateTime</code>s is that when you encounter a time that is ambiguous or doesn&#39;t exist, you don&#39;t lose the information. For example, consider the following case:</p><pre><code class="language-julia">julia&gt; lzdt = LaxZonedDateTime(DateTime(2016, 3, 12, 2), winnipeg)
+2016-03-11T02:00:00-06:00
+
+julia&gt; nonexistent = lzdt + Dates.Day(1)
+2016-03-13T02:00:00-DNE
+
+julia&gt; nonexistent + Dates.Day(1)
+2016-03-14T02:00:00-05:00</code></pre><p>In some cases, however, it&#39;s difficult to determine what the result should be. While arithmetic with <code>DatePeriod</code>s will always work, attempting to add or subtract a <code>TimePeriod</code> value from an ambiguous or nonexistent <code>LaxZonedDateTime</code> will result in an unrepresentable value (which is an unrecoverable state):</p><pre><code class="language-julia">julia&gt; lzdt = LaxZonedDateTime(DateTime(2016, 3, 13, 2), winnipeg)
+2016-03-13T02:00:00-DNE
+
+julia&gt; lzdt + Dates.Hour(2)
+INVALID</code></pre><p>You can test a <code>LaxZonedDateTime</code> for validity using <code>isnonexistent</code>, <code>isambiguous</code>, and <code>isvalid</code> (the last of which returns <code>false</code> if the value is nonexistent, ambiguous, or unrepresentable).</p><h2 id="Ranges"><a class="docs-heading-anchor" href="#Ranges">Ranges</a><a id="Ranges-1"></a><a class="docs-heading-anchor-permalink" href="#Ranges" title="Permalink"></a></h2><pre><code class="language-julia">julia&gt; lzdt = LaxZonedDateTime(DateTime(2016, 3, 11, 2), winnipeg)
+2016-03-11T02:00:00-06:00
+
+julia&gt; r = lzdt:Dates.Day(1):(lzdt + Dates.Day(5))
+2016-03-16T02:00:00-05:002016-03-11T02:00:00-06:00
+
+julia&gt; collect(r)
+6-element Array{LaxZonedDateTimes.LaxZonedDateTime,1}:
+ 2016-03-11T02:00:00-06:00
+ 2016-03-12T02:00:00-06:00
+ 2016-03-13T02:00:00-DNE
+ 2016-03-14T02:00:00-05:00
+ 2016-03-15T02:00:00-05:00
+ 2016-03-16T02:00:00-05:00</code></pre><p>Notice that the third element represents a nonexistent time (a time that has no UTC representation).</p><p>Note that ambiguous and nonexistent values only occur in places where a <code>ZonedDateTime</code> would raise an exception. Here, we step right past the nonexistent time:</p><pre><code class="language-julia">julia&gt; lzdt = LaxZonedDateTime(DateTime(2016, 3, 13), TimeZone(&quot;America/Winnipeg&quot;))
+2016-03-13T00:00:00-06:00
+
+julia&gt; r = lzdt:Dates.Hour(1):(lzdt + Dates.Hour(5))
+2016-03-16T02:00:00-05:002016-03-11T02:00:00-06:00
+
+julia&gt; collect(r)
+6-element Array{LaxZonedDateTimes.LaxZonedDateTime,1}:
+ 2016-03-13T00:00:00-06:00
+ 2016-03-13T01:00:00-06:00
+ 2016-03-13T03:00:00-05:00
+ 2016-03-13T04:00:00-05:00
+ 2016-03-13T05:00:00-05:00
+ 2016-03-13T06:00:00-05:00</code></pre><p>Ranges should generally work as expected, but here are the rules for some of the edge cases that you might encounter:</p><ul><li>If start and/or finish is unrepresentable, the range collects to nothing</li><li>If start is AMB/DNE, and step is a <code>DatePeriod</code>, it works (first element will be DNE/AMB)</li><li>If start is AMB/DNE, and step is a <code>TimePeriod</code>, the range collects to nothing</li><li>If finish is AMB/DNE, and step is a <code>DatePeriod</code>, it works (last element may be DNE/AMB)</li><li>If finish is AMB/DNE, and step is a <code>TimePeriod</code>, it works (last element omitted for DNE, both versions included for AMB)</li></ul><p>(The last two descriptions above assume that step divides evenly into the range. If it doesn&#39;t, then the last element won&#39;t actually hit the AMB/DNE value.)</p><p>When transitions occur between the start and end of a range, they are skipped over as per the TimeZones.jl implementation (e.g., when stepping one hour at a time, a &quot;spring forward&quot; will result in the range collecting to 0:00, 1:00, 3:00, ...). A DNE <code>LaxZonedDateTime</code> will only appear in cases where TimeZones.jl would throw an error (e.g., stepping through the &quot;spring forward&quot; transition one day at a time, and landing on the missing hour).</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 March 2021 21:14">Wednesday 10 March 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
