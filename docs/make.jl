@@ -6,7 +6,7 @@ makedocs(
     pages = [
         "Home" => "index.md",
     ],
-    repo = "https://gitlab.invenia.ca/invenia/LaxZonedDateTimes.jl/blob/{commit}{path}#L{line}",
+    repo = "https://github.ca/JuliaTime/LaxZonedDateTimes.jl/blob/{commit}{path}#L{line}",
     sitename = "LaxZonedDateTimes.jl",
     authors = "Curtis Vogt, Gem Newman",
     assets = [
@@ -15,4 +15,3 @@ makedocs(
     checkdocs = :none,
     strict = true,
 )
-

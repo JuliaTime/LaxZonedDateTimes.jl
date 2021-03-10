@@ -1,7 +1,7 @@
 # LaxZonedDateTimes
-[![latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://invenia.pages.invenia.ca/LaxZonedDateTimes.jl/)
-[![build status](https://gitlab.invenia.ca/invenia/LaxZonedDateTimes.jl/badges/master/build.svg)](https://gitlab.invenia.ca/invenia/LaxZonedDateTimes.jl/commits/master)
-[![coverage](https://gitlab.invenia.ca/invenia/LaxZonedDateTimes.jl/badges/master/coverage.svg)](https://gitlab.invenia.ca/invenia/LaxZonedDateTimes.jl/commits/master)
+[![latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliatime.github.io/LaxZonedDateTimes.jl/stable/)
+[![dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliatime.github.io/LaxZonedDateTimes.jl/stable/)
+[![build status](https://github.com/JuliaTime/LaxZonedDateTimes.jl/workflows/CI/badge.svg)](https://github.com/JuliaTime/LaxZonedDateTimes.jl/commits/master)
 
 Provides `LaxZonedDateTime`, an alternative to TimeZones.jl's `ZonedDateTime` that does
 not raise exceptions when a time that is ambiguous or doesn't exist is encountered.
