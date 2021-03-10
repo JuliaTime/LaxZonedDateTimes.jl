@@ -1,6 +1,6 @@
 # LaxZonedDateTimes
 [![latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliatime.github.io/LaxZonedDateTimes.jl/stable/)
-[![dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliatime.github.io/LaxZonedDateTimes.jl/stable/)
+[![dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://juliatime.github.io/LaxZonedDateTimes.jl/dev/)
 [![build status](https://github.com/JuliaTime/LaxZonedDateTimes.jl/workflows/CI/badge.svg)](https://github.com/JuliaTime/LaxZonedDateTimes.jl/commits/master)
 
 Provides `LaxZonedDateTime`, an alternative to TimeZones.jl's `ZonedDateTime` that does
