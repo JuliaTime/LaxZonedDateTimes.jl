@@ -15,3 +15,7 @@ makedocs(
     checkdocs = :none,
     strict = true,
 )
+
+deploydocs(;
+    repo="github.com/JuliaTime/LaxZonedDateTimes.jl"
+)
