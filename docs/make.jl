@@ -17,6 +17,5 @@ makedocs(
 )
 
 deploydocs(;
-    repo="github.com/JuliaTime/LaxZonedDateTimes.jl",
-    push_preview=true,
+    repo="github.com/JuliaTime/LaxZonedDateTimes.jl"
 )
