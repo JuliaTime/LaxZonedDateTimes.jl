@@ -5,6 +5,7 @@ using LaxZonedDateTimes: isrepresentable, NonExistent
 using Test
 using TimeZones
 using TimeZones: Transition, timezone
+using UTCDateTimes
 
 const winnipeg = TimeZone("America/Winnipeg")
 

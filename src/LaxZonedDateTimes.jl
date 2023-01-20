@@ -6,6 +6,7 @@ using Dates: AbstractDateTime, DatePeriod, DateTime, Dates, Millisecond, Period,
 using Intervals
 using TimeZones
 using TimeZones: Local, UTC, interpret, timezone
+using UTCDateTimes
 
 export
     LaxZonedDateTime, ZDT,
@@ -37,6 +38,11 @@ end
 function LaxZonedDateTime()
     utc = TimeZone("UTC")
     LaxZonedDateTime(DateTime(0), utc, utc, false)
+end
+
+function LaxZonedDateTime(utcdt::UTCDateTime)
+    utc = TimeZone("UTC")
+    LaxZonedDateTime(DateTime(utcdt), utc, utc, true)
 end
 
 function LaxZonedDateTime(zdt::ZonedDateTime)
@@ -210,6 +216,9 @@ Base.promote_rule(::Type{LaxZonedDateTime},::Type{ZonedDateTime}) = LaxZonedDate
 Base.convert(::Type{LaxZonedDateTime}, x::ZonedDateTime) = LaxZonedDateTime(x)
 Base.convert(::Type{ZonedDateTime}, x::LaxZonedDateTime) = ZonedDateTime(x)
 
+Base.convert(::Type{LaxZonedDateTime}, x::UTCDateTime) = LaxZonedDateTime(x)
+Base.convert(::Type{UTCDateTime}, x::LaxZonedDateTime) = UTCDateTime(x)
+
 function Base.isless(a::LaxZonedDateTime, b::LaxZonedDateTime)
     if !isrepresentable(a) || !isrepresentable(b)
         return false
@@ -272,6 +281,11 @@ function TimeZones.ZonedDateTime(lzdt::LaxZonedDateTime, resolve_by::Symbol=:thr
     else
         return ZonedDateTime(local_dt, tz)
     end
+end
+
+# Not very performant, but just reuse the ZonedDateTime constructor above for UTCDateTimes
+function UTCDateTimes.UTCDateTime(lzdt::LaxZonedDateTime, args...)
+    return UTCDateTime(ZonedDateTime(lzdt, args...))
 end
 
 const ZDT = Union{ZonedDateTime, LaxZonedDateTime}
