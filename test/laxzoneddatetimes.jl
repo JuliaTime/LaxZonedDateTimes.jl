@@ -2,9 +2,13 @@
     utc = TimeZone("UTC")
     fixed = FixedTimeZone("UTC-06:00")
     dt = DateTime(2016, 8, 11, 2, 30)
+    utcdt = UTCDateTime(dt)
+
+    @test ZonedDateTime(LaxZonedDateTime(utcdt)) == ZonedDateTime(utcdt)
 
     for t in (utc, fixed)
         @test ZonedDateTime(LaxZonedDateTime(dt, t)) == ZonedDateTime(dt, t)
+
         for p in (Hour(1), Day(1))
             @test LaxZonedDateTime(dt, t) + p == LaxZonedDateTime(dt + p, t)
             @test LaxZonedDateTime(dt, t) - p == LaxZonedDateTime(dt - p, t)
@@ -55,7 +59,7 @@ end
     @test isequal(non_existent - Hour(0), LaxZonedDateTime())
 
     @test isequal((non_existent + Hour(1)) + Hour(1), LaxZonedDateTime())
-    @test isequal((non_existent + Hour(1)) + Day(1), LaxZonedDateTime())  
+    @test isequal((non_existent + Hour(1)) + Day(1), LaxZonedDateTime())
 end
 
 @testset "compare" begin
@@ -64,7 +68,7 @@ end
         a = LaxZonedDateTime(ZonedDateTime(2014,winnipeg))
         b = ZonedDateTime(2015,winnipeg)
         @test a < b
-    
+
         a = ZonedDateTime(2016, 11, 6, 1, 30, winnipeg, 1)
         b = ZonedDateTime(2016, 11, 6, 1, winnipeg, 2)
 
@@ -187,5 +191,50 @@ end
         @test_throws NonExistentTimeError ZonedDateTime(dne, :throw)
         @test_throws NonExistentTimeError ZonedDateTime(dne)
     end
-    
+
+end
+
+@testset "convert to UTCDateTime" begin
+
+    @testset "basic" begin
+        lzdt = LaxZonedDateTime(DateTime(2020, 1, 1, 9, 30), winnipeg)
+        expected =  UTCDateTime(ZonedDateTime(DateTime(2020, 1, 1, 9, 30), winnipeg))
+        @test UTCDateTime(lzdt) == expected
+    end
+
+    @testset "Ambiguous" begin
+        # Occurs during Fall DST - it's the same hour just in two different timezones
+        amb = LaxZonedDateTime(DateTime(2016, 11, 6, 1, 45), winnipeg)
+
+        utcdt = UTCDateTime(amb, :first)
+        exp_first = UTCDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 1))
+        @test utcdt == exp_first
+
+        utcdt = UTCDateTime(amb, :last)
+        exp_last = UTCDateTime(ZonedDateTime(2016, 11, 6, 1, 45, winnipeg, 2))
+        @test utcdt == exp_last
+
+        @test_throws AmbiguousTimeError UTCDateTime(amb, :throw)
+        @test_throws AmbiguousTimeError UTCDateTime(amb)
+
+    end
+
+    @testset "NonExistent" begin
+        # Occurs during Spring DST
+        dne = LaxZonedDateTime(DateTime(2016, 3, 13, 2, 45), winnipeg)
+
+        # :first gets the time just before the transition occurred
+        utcdt = UTCDateTime(dne, :first)
+        exp_first = UTCDateTime(ZonedDateTime(2016, 3, 13, 1, 59, 59, 999, winnipeg))
+        @test utcdt == exp_first
+
+        # :last gets the hour after the transition occurred
+        utcdt = UTCDateTime(dne, :last)
+        exp_last = UTCDateTime(ZonedDateTime(2016, 3, 13, 3, 0, winnipeg))
+        @test utcdt == exp_last
+
+        @test_throws NonExistentTimeError UTCDateTime(dne, :throw)
+        @test_throws NonExistentTimeError UTCDateTime(dne)
+    end
+
 end
