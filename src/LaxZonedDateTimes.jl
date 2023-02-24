@@ -41,7 +41,7 @@ function LaxZonedDateTime()
 end
 
 function LaxZonedDateTime(utcdt::UTCDateTime)
-    utc = TimeZone("UTC")
+    utc = tz"UTC"
     LaxZonedDateTime(DateTime(utcdt), utc, utc, true)
 end
 
